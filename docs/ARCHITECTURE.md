@@ -8,7 +8,7 @@
 | **CI** | GitLab, GitLab Runners, Ansible in CI | JWT → role-scoped KV paths |
 | **Workstation** | VS Code Dev Containers, local Ansible | OIDC/token/AppRole via host → `remoteEnv` |
 | **Inventory** | NetBox Community, optional Orb Agent | Token in Vault; device *paths* in NetBox |
-| **Agent** | NetClaw + Vault MCP + DefenseClaw | AppRole → read (default); change role gated |
+| **Agent** | NetClaw + Vault MCP + DefenseClaw + LLM (Claude/OpenAI/local) | AppRole → read (default); change role gated; model choice in [MODELS.md](MODELS.md) |
 | **Network devices** | Routers/switches/firewalls | Accept SSH cert/OTP or static user from Vault |
 
 ## Data flow (troubleshoot)

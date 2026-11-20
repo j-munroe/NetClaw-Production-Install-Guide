@@ -47,6 +47,7 @@ Replace static GitLab CI variables, Ansible Vault files, Dev Container `.env` se
 - [ ] Choose Vault edition: **OSS** (start here) or Enterprise (namespaces, replication)
 - [ ] Choose HA: single node (lab) vs Raft/Consul (prod)
 - [ ] Choose auth methods: **JWT** (GitLab), **AppRole** (NetClaw/Ansible controllers), **OIDC** (humans / Dev Containers)
+- [ ] Choose NetClaw **Main** LLM: Claude (recommended), OpenAI (if mandated), or local (air-gap) — see [MODELS.md](MODELS.md)
 - [ ] Confirm TLS: internal CA or public cert for `VAULT_ADDR`
 - [ ] Confirm network path: Runners, NetBox host, NetClaw host → Vault:8200
 
@@ -188,6 +189,7 @@ ssh/roles/netclaw-change
 
 **Tasks**
 
+- [ ] Select Main / Fallback / Compaction models ([MODELS.md](MODELS.md)); store provider API keys outside git
 - [ ] Install/register HashiCorp `vault-mcp-server`
 - [ ] Auth NetClaw with **AppRole** (preferred) or short-lived token
 - [ ] Apply `policies/netclaw-read.hcl` (and separate change policy)
@@ -200,8 +202,9 @@ ssh/roles/netclaw-change
 - NetClaw can list secret *paths* and connect to one lab device using Vault-sourced creds
 - Chat/UI shows redacted values only
 - Vault audit shows agent identity on each read
+- Lab troubleshoot succeeds on the chosen Main model
 
-**Guide:** [NETCLAW.md](NETCLAW.md)
+**Guide:** [NETCLAW.md](NETCLAW.md) · [MODELS.md](MODELS.md)
 
 ---
 

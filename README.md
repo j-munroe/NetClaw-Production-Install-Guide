@@ -32,6 +32,7 @@ Workplan and install setup for **HashiCorp Vault** as the secrets system of reco
 | [DEVCONTAINERS.md](docs/DEVCONTAINERS.md) | VS Code Dev Containers without committed secrets |
 | [NETBOX.md](docs/NETBOX.md) | Inventory references, tokens, Orb Agent |
 | [NETCLAW.md](docs/NETCLAW.md) | Vault MCP, policies, safe agent access |
+| [MODELS.md](docs/MODELS.md) | Claude vs OpenAI vs local LLMs for NetClaw |
 | [SECURITY.md](docs/SECURITY.md) | Least privilege, audit, rotation |
 
 ## Quick start (lab)
@@ -45,7 +46,7 @@ cd scripts
 ./04-configure-approle.sh
 ```
 
-Then wire GitLab JWT ([GITLAB.md](docs/GITLAB.md)), Ansible ([ANSIBLE.md](docs/ANSIBLE.md)), Dev Containers ([DEVCONTAINERS.md](docs/DEVCONTAINERS.md)), and NetClaw MCP ([NETCLAW.md](docs/NETCLAW.md)).
+Then wire GitLab JWT ([GITLAB.md](docs/GITLAB.md)), Ansible ([ANSIBLE.md](docs/ANSIBLE.md)), Dev Containers ([DEVCONTAINERS.md](docs/DEVCONTAINERS.md)), NetClaw MCP ([NETCLAW.md](docs/NETCLAW.md)), and model choice ([MODELS.md](docs/MODELS.md)).
 
 ## Package layout
 
