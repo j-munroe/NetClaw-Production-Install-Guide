@@ -2,7 +2,8 @@
 
 NetClaw integrates with the official Hashicorp **vault-mcp-server** so the agent can retrieve credentials and certificates without embedding secrets in skills or chat.
 
-For **which LLM to use** (Claude vs OpenAI vs local), see [MODELS.md](MODELS.md).
+For **which LLM to use** (Claude vs OpenAI vs local), see [MODELS.md](MODELS.md).  
+For **installing a local LLM** (Ollama + Qwen3), see [LOCAL_LLM.md](LOCAL_LLM.md).
 
 Upstream references:
 

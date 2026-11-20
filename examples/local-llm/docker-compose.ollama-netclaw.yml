@@ -1,0 +1,41 @@
+# Lab sketch — pin netclaw image tags for real deployments.
+# Usage:
+#   docker compose -f docker-compose.ollama-netclaw.yml up -d
+#   docker compose -f docker-compose.ollama-netclaw.yml exec ollama ollama pull qwen3:30b
+#   docker compose -f docker-compose.ollama-netclaw.yml exec ollama ollama pull qwen3:8b
+#
+# See docs/LOCAL_LLM.md
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama-data:/root/.ollama
+    # Uncomment with NVIDIA Container Toolkit:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  netclaw:
+    image: ghcr.io/netclaw-dev/netclaw:0.28.2
+    restart: unless-stopped
+    stop_grace_period: 60s
+    depends_on:
+      - ollama
+    volumes:
+      - netclaw-home:/home/netclaw/.netclaw
+    environment:
+      NETCLAW_Providers__local_ollama__Type: ollama
+      NETCLAW_Providers__local_ollama__Endpoint: http://ollama:11434
+      NETCLAW_Models__Definitions__qwen__Provider: local_ollama
+      NETCLAW_Models__Definitions__qwen__ModelId: qwen3:30b
+      NETCLAW_Models__Roles__Main: qwen
+
+volumes:
+  ollama-data:
+  netclaw-home:

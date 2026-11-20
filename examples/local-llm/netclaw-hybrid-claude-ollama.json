@@ -1,0 +1,29 @@
+{
+  "Providers": {
+    "anthropic": {
+      "Type": "anthropic"
+    },
+    "local-ollama": {
+      "Type": "ollama",
+      "Endpoint": "http://127.0.0.1:11434"
+    }
+  },
+  "Models": {
+    "Definitions": {
+      "claude-main": {
+        "Provider": "anthropic",
+        "ModelId": "claude-sonnet-4"
+      },
+      "qwen-small": {
+        "Provider": "local-ollama",
+        "ModelId": "qwen3:8b",
+        "ContextWindow": 32768
+      }
+    },
+    "Roles": {
+      "Main": "claude-main",
+      "Fallback": "qwen-small",
+      "Compaction": "qwen-small"
+    }
+  }
+}

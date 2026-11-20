@@ -1,0 +1,27 @@
+{
+  "Providers": {
+    "local-ollama": {
+      "Type": "ollama",
+      "Endpoint": "http://127.0.0.1:11434"
+    }
+  },
+  "Models": {
+    "Definitions": {
+      "qwen-main": {
+        "Provider": "local-ollama",
+        "ModelId": "qwen3:30b",
+        "ContextWindow": 32768
+      },
+      "qwen-small": {
+        "Provider": "local-ollama",
+        "ModelId": "qwen3:8b",
+        "ContextWindow": 32768
+      }
+    },
+    "Roles": {
+      "Main": "qwen-main",
+      "Fallback": "qwen-small",
+      "Compaction": "qwen-small"
+    }
+  }
+}

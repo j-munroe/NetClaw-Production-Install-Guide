@@ -70,7 +70,9 @@ Use when:
 - Compaction/fallback to cut cloud spend
 - Lab/pilot without cloud API access
 
-Guidance from NetClaw community discussions: smaller locals (e.g. Llama 3.1, Gemma 3, Phi-4 class) can give *decent* results; for closer-to-cloud agent quality, plan on a **larger** local model and real GPU (presentation material cites setups such as RTX-class cards and ~30B-class models for local Main).
+**Recommended local stack:** Ollama + **`qwen3:30b`** (Main) + **`qwen3:8b`** (Fallback/Compaction). Full install steps: [LOCAL_LLM.md](LOCAL_LLM.md).
+
+Smaller locals (e.g. Llama 3.1, Gemma 3, Phi-4 class) can give *decent* results; for closer-to-cloud agent quality, plan on a **~30B-class** model and real GPU.
 
 Watch-outs:
 
@@ -93,12 +95,12 @@ Compaction:  Local small/mid model (Ollama)
 ### Air-gapped / high sovereignty
 
 ```
-Main:        Local large model (Ollama / on-prem endpoint)
-Fallback:    Second local model
-Compaction:  Smaller local model
+Main:        qwen3:30b via Ollama (or qwen3:14b if VRAM-limited)
+Fallback:    qwen3:8b
+Compaction:  qwen3:8b
 ```
 
-Tighten SOUL.md and remove or gate write tools (e.g. configure) so the agent stays read-only until you are ready ([NETCLAW.md](NETCLAW.md)).
+Install guide: [LOCAL_LLM.md](LOCAL_LLM.md). Tighten SOUL.md and remove or gate write tools (e.g. configure) so the agent stays read-only until you are ready ([NETCLAW.md](NETCLAW.md)).
 
 ### Cost-sensitive lab
 
@@ -122,7 +124,7 @@ Compaction:  Local small
 ## Decision checklist
 
 - [ ] Confirm data policy: may show-output / configs go to a cloud LLM?
-- [ ] If no → local Main (or on-prem Bedrock/Azure equivalent under your agreement)
+- [ ] If no → local Main via Ollama/`qwen3:30b` ([LOCAL_LLM.md](LOCAL_LLM.md)) or on-prem Bedrock/Azure under your agreement
 - [ ] If yes → Claude Main unless OpenAI is mandated
 - [ ] Set Fallback + Compaction (prefer local for compaction)
 - [ ] Store provider API keys in Vault or host secret store; wire via env, not git

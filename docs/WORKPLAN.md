@@ -48,6 +48,7 @@ Replace static GitLab CI variables, Ansible Vault files, Dev Container `.env` se
 - [ ] Choose HA: single node (lab) vs Raft/Consul (prod)
 - [ ] Choose auth methods: **JWT** (GitLab), **AppRole** (NetClaw/Ansible controllers), **OIDC** (humans / Dev Containers)
 - [ ] Choose NetClaw **Main** LLM: Claude (recommended), OpenAI (if mandated), or local (air-gap) — see [MODELS.md](MODELS.md)
+- [ ] If using local: install Ollama + `qwen3:30b` / `qwen3:8b` — see [LOCAL_LLM.md](LOCAL_LLM.md)
 - [ ] Confirm TLS: internal CA or public cert for `VAULT_ADDR`
 - [ ] Confirm network path: Runners, NetBox host, NetClaw host → Vault:8200
 
@@ -190,6 +191,7 @@ ssh/roles/netclaw-change
 **Tasks**
 
 - [ ] Select Main / Fallback / Compaction models ([MODELS.md](MODELS.md)); store provider API keys outside git
+- [ ] If local or hybrid: Ollama up, models pulled, NetClaw provider healthy ([LOCAL_LLM.md](LOCAL_LLM.md))
 - [ ] Install/register HashiCorp `vault-mcp-server`
 - [ ] Auth NetClaw with **AppRole** (preferred) or short-lived token
 - [ ] Apply `policies/netclaw-read.hcl` (and separate change policy)
@@ -204,7 +206,7 @@ ssh/roles/netclaw-change
 - Vault audit shows agent identity on each read
 - Lab troubleshoot succeeds on the chosen Main model
 
-**Guide:** [NETCLAW.md](NETCLAW.md) · [MODELS.md](MODELS.md)
+**Guide:** [NETCLAW.md](NETCLAW.md) · [MODELS.md](MODELS.md) · [LOCAL_LLM.md](LOCAL_LLM.md)
 
 ---
 
