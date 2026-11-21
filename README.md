@@ -24,6 +24,44 @@ Docs and examples assume **latest stable** releases (Vault 2.x, Ollama, `communi
 - SSH secrets engine supports short-lived OTP / certificates for agents
 - Works fully on-prem
 
+## System overview
+
+```mermaid
+flowchart TB
+  subgraph consumers [Consumers]
+    NC[NetClaw]
+    GL[GitLab CE + Runners]
+    AN[Ansible]
+    DC[Dev Containers]
+  end
+
+  subgraph sot [Sources of truth]
+    NB[NetBox inventory + vault_path]
+    V[(HashiCorp Vault)]
+  end
+
+  subgraph access [Device access]
+    B[SSH bastion / capable NOS]
+    D[Network devices]
+  end
+
+  subgraph pki [Separate X.509 PKI]
+    CP[ClearPass Onboard]
+  end
+
+  NC -->|AppRole / Vault MCP| V
+  GL -->|JWT + Vault CLI| V
+  AN -->|JWT or AppRole + lookups| V
+  DC -->|OIDC / token via host| V
+  NB -->|paths only| NC
+  NB -->|paths only| AN
+  V -->|SSH CA user certs / KV| B
+  B --> D
+  CP -->|802.1X / device TLS| D
+```
+
+More diagrams: **[docs/DIAGRAMS.md](docs/DIAGRAMS.md)**.
+
 ## Docs
 
 | Doc | Purpose |
@@ -42,6 +80,7 @@ Docs and examples assume **latest stable** releases (Vault 2.x, Ollama, `communi
 | [LOCAL_LLM.md](docs/LOCAL_LLM.md) | Install Ollama + recommended Qwen3 models for NetClaw |
 | [VERSIONS.md](docs/VERSIONS.md) | Latest-stable version policy and current release snapshot |
 | [SECURITY.md](docs/SECURITY.md) | Least privilege, audit, rotation |
+| [DIAGRAMS.md](docs/DIAGRAMS.md) | Index of architecture / flow diagrams |
 
 ## Quick start (lab)
 

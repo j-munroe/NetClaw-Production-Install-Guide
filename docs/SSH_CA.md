@@ -52,6 +52,19 @@ Vault SSH CA mode does **not** replace ClearPass for NAC. ClearPass Onboard does
 3. NetClaw / GitLab CI / an engineer presents a short-lived **user SSH certificate** signed by Vault (principals = OS users such as `netops`).
 4. `sshd` trusts the CA; no shared password; TTL expires (e.g. 30m).
 
+```mermaid
+sequenceDiagram
+  participant C as Client NetClaw/Ansible
+  participant V as Vault SSH CA
+  participant H as sshd target
+
+  Note over H: TrustedUserCAKeys = Vault CA pub
+  C->>V: ssh/sign role + pubkey TTL 30m
+  V-->>C: user SSH certificate
+  C->>H: SSH with key + certificate
+  H-->>C: accept if principal + validity OK
+```
+
 ```
 Client (NetClaw / Ansible)
   → Vault: sign my SSH public key (role netclaw-troubleshoot, TTL 30m)
@@ -215,6 +228,18 @@ Why this is the best fit:
 3. New systems appear in **NetBox** first (or via discovery); a pipeline/hook runs without a human SSH session.
 4. Scales to bastions and any NOS that Ansible can configure; unsupported devices stay behind a seeded bastion.
 
+```mermaid
+flowchart TD
+  New[New system imaged / ZTP / VM] --> NB[NetBox status=staged]
+  NB --> CI[GitLab CE pipeline]
+  CI --> AN[Ansible vault_ssh_ca_trust]
+  AN --> Trust[TrustedUserCAKeys + reload sshd]
+  AN --> HostOpt[Optional host cert AppRole]
+  Trust --> Active[NetBox status=active]
+  HostOpt --> Active
+  Active --> Use[NetClaw/CI ssh/sign → user cert SSH]
+```
+
 ```
 New system imaged / ZTP / VM created
         │
@@ -338,6 +363,26 @@ Zero-touch CA seeding still needs **one** initial auth path onto a brand-new box
 ---
 
 ## ClearPass + Vault coexistence diagram
+
+```mermaid
+flowchart TB
+  subgraph x509 [X.509 — ClearPass Onboard]
+    CP[ClearPass CA] -->|SCEP/EST/onboard| N1[802.1X / EAP-TLS]
+    CP --> N2[Device HTTPS mgmt TLS]
+  end
+  subgraph ssh [SSH certificates — Vault]
+    VCA[Vault SSH CA] -->|ssh/sign| NC[NetClaw]
+    VCA --> AN[Ansible / CI]
+    VCA --> ENG[Engineer]
+    NC --> SSHD[sshd TrustedUserCAKeys]
+    AN --> SSHD
+    ENG --> SSHD
+  end
+  SSHD --> Bastion[Bastion / capable NOS]
+  Bastion --> Dev[Network devices]
+  N1 --> Dev
+  N2 --> Dev
+```
 
 ```
                  ┌─────────────────────┐

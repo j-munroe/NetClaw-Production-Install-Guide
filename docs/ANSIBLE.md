@@ -10,6 +10,19 @@ Collection: [`community.hashi_vault`](https://docs.ansible.com/projects/ansible/
 
 ## Target pattern
 
+```mermaid
+flowchart TB
+  PB[Playbook / role] --> LK[community.hashi_vault.vault_kv2_get]
+  LK --> V[(Vault)]
+  V --> AUTH{Auth}
+  AUTH -->|GitLab CE| JWT[JWT → VAULT_TOKEN]
+  AUTH -->|Controller / NetClaw host| AR[AppRole]
+  AUTH -->|Dev Container| OIDC[Host OIDC / token]
+  LK --> VAR[ansible_user / ansible_ssh_pass / become]
+  VAR --> NO[modules with no_log: true]
+  NO --> DEV[Devices]
+```
+
 ```
 Playbook / role
   → community.hashi_vault.vault_kv2_get (or hashi_vault) lookup

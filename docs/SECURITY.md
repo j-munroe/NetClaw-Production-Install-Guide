@@ -2,6 +2,16 @@
 
 ## Principles
 
+```mermaid
+flowchart TB
+  Req[Secret request] --> V{Vault available?}
+  V -->|No| Fail[Fail closed — no plaintext fallback]
+  V -->|Yes| Pol{Policy allows path?}
+  Pol -->|No| Deny[Deny + audit]
+  Pol -->|Yes| TTL[Issue short TTL secret/cert]
+  TTL --> Audit[Audit log]
+```
+
 1. **Fail closed** — if Vault is unavailable, do not fall back to plaintext credential files in production.
 2. **Least privilege** — separate policies for CI lab, CI prod, NetClaw read, NetClaw change, NetBox agent.
 3. **Short TTL** — tokens hours or less; SSH certs/OTP minutes.

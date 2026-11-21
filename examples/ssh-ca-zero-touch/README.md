@@ -12,6 +12,16 @@ Companion to [`../../docs/SSH_CA.md`](../../docs/SSH_CA.md) — **best method fo
 
 ## Flow
 
+```mermaid
+flowchart LR
+  Pub[CA pubkey in git] --> Role[Ansible vault_ssh_ca_trust]
+  NB[NetBox staged] --> CI[GitLab CE]
+  CI --> Role
+  Role --> Trust[TrustedUserCAKeys]
+  Trust --> Active[NetBox active]
+  Active --> Sign[ssh/sign user certs]
+```
+
 1. Publish CA pubkey into `files/vault-ssh-ca.pub` (not a secret).
 2. When NetBox device/VM is `staged`, pipeline runs `vault_ssh_ca_trust`.
 3. Mark device `active`; NetClaw uses `ssh/sign/...` for user certs at connect time.

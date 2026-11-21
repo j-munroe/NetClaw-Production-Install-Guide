@@ -40,6 +40,21 @@ Prefer **one KV mount** (`secret/`) with a deep path taxonomy over many mounts p
 
 ## Recommended taxonomy (default for this repo)
 
+```mermaid
+flowchart TB
+  S[secret/ KV v2]
+  S --> P[platform/]
+  S --> N[network/]
+  S --> C[ci/ optional]
+  P --> NB[netbox]
+  P --> GL[gitlab rare]
+  N --> L[lab / stage / prod]
+  L --> Site[site e.g. dc1]
+  L --> SharedEnv[shared/]
+  Site --> Dev[device/credentials]
+  SharedEnv --> NC[netclaw / ansible]
+```
+
 ```
 secret/                          # KV v2 mount
   platform/                      # Controllers & tools (not network devices)
@@ -161,6 +176,18 @@ OK as an *alias* field (`vault_path_id`) later; keep human paths as primary.
 ---
 
 ## Decision guide
+
+```mermaid
+flowchart TD
+  A{Mount-level prod isolation required?}
+  A -->|Yes| C[Strategy C: secret-lab + secret-prod]
+  A -->|No| B{Multi-BU separate Vault admins?}
+  B -->|Yes| D[Strategy D: bu/env/site/device]
+  B -->|No| E[Strategy A: env/site/device]
+  E --> F{Mostly shared role passwords today?}
+  F -->|Yes| G[Lab: Strategy B temporary<br/>Prod target: A + SSH CA]
+  F -->|No| H[Use Strategy A]
+```
 
 ```
 Need mount-level prod isolation for compliance?

@@ -15,6 +15,18 @@ Replace static GitLab CI variables, Ansible Vault files, Dev Container `.env` se
 
 ## Target state
 
+```mermaid
+flowchart TB
+  V[(HashiCorp Vault — secrets SoT)]
+  GL[GitLab JWT] --> V
+  AN[Ansible lookups] --> V
+  DC[Dev Container] --> V
+  NC[NetClaw AppRole] --> V
+  NB[Orb / NetBox] --> V
+  V --> Dev[Devices / APIs]
+  NB -.->|paths only| Dev
+```
+
 ```
                  ┌─────────────────┐
                  │  HashiCorp Vault │
@@ -257,6 +269,22 @@ ssh/roles/netclaw-change
 ---
 
 ## Suggested order of execution
+
+```mermaid
+flowchart LR
+  P0[0 Decisions] --> P1[1 Install]
+  P1 --> P2[2 Engines / paths]
+  P2 --> P3[3 GitLab]
+  P2 --> P3b[3b Ansible]
+  P2 --> P4[4 NetBox]
+  P3 --> P3b
+  P3b --> P3c[3c Dev Containers]
+  P2 --> P5[5 NetClaw]
+  P4 --> P5
+  P5 --> P6[6 SSH CA]
+  P3 --> P7[7 Operate]
+  P6 --> P7
+```
 
 | Order | Phase | Depends on |
 |------:|-------|------------|

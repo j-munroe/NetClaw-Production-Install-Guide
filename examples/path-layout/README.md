@@ -6,6 +6,22 @@ Full guidance: [`../../docs/PATH_LAYOUT.md`](../../docs/PATH_LAYOUT.md)
 
 ## Tree (logical)
 
+```mermaid
+flowchart TB
+  S[secret/]
+  S --> P[platform/netbox]
+  S --> N[network/]
+  N --> Lab[lab/]
+  N --> Prod[prod/]
+  Lab --> DC1[dc1/]
+  Lab --> Shared[shared/]
+  DC1 --> R[lab-rtr-01/credentials]
+  DC1 --> SW[lab-sw-01/credentials]
+  Shared --> NC[netclaw]
+  Shared --> AN[ansible]
+  Prod --> C[dc1/core-sw-01/credentials]
+```
+
 ```
 secret/                                 # kv-v2 mount
 ├── platform/

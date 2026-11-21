@@ -8,6 +8,17 @@ Transition guide for local and GitLab-adjacent workflows where Dev Containers to
 
 ## Target pattern
 
+```mermaid
+flowchart LR
+  Eng[Engineer] --> Host[Host vault login]
+  Host --> Env[VAULT_ADDR + VAULT_TOKEN]
+  Env --> DC[Dev Container remoteEnv]
+  Env --> M[Optional ~/.vault-token mount]
+  DC --> Tools[Ansible / scripts]
+  M --> Tools
+  Tools --> V[(Vault)]
+```
+
 ```
 Host (engineer laptop / workstation)
   → authenticates to Vault (OIDC, token, or AppRole)

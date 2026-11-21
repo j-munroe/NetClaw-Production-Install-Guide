@@ -14,6 +14,17 @@ Install and wire a **self-hosted** model so NetClaw can run air-gapped, keep sho
 
 **Bottom line:** Install **Ollama**, pull **`qwen3:30b`** (Main) and **`qwen3:8b`** (Fallback/Compaction). If you only have ~12 GB VRAM, use **`qwen3:14b`** as Main instead of 30B.
 
+```mermaid
+flowchart LR
+  NC[NetClaw] --> Prov{Provider}
+  Prov -->|hybrid recommended| Claude[Claude Main]
+  Prov -->|air-gap / local Main| Ollama[Ollama]
+  Claude --> FB[Fallback: qwen3:8b]
+  Ollama --> M[Main: qwen3:30b or 14b]
+  Ollama --> C[Compaction: qwen3:8b]
+  FB --> Ollama
+```
+
 NetClaw needs reliable **tool calling** and roughly **≥32k** context for a loaded agent session (first turn alone can be ~10k tokens with tools/skills). Plan hardware accordingly.
 
 Upstream: [Models](https://netclaw.dev/configuration/models/) · [Self-hosted providers](https://netclaw.dev/configuration/self-hosted-providers/)

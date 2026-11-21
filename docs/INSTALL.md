@@ -4,6 +4,21 @@ This guide installs Vault for lab or first production footprint, then enables th
 
 Replace every `CHANGE_ME` / example hostname before use.
 
+```mermaid
+flowchart LR
+  P0[0 Prereqs] --> P1[1 Install]
+  P1 --> P2[2 Config TLS]
+  P2 --> P3[3 Init unseal audit]
+  P3 --> P4[4 Engines]
+  P4 --> P5[5 Paths]
+  P5 --> P6[6 Policies]
+  P6 --> P7[7 Auth]
+  P7 --> P8[8 SSH CA]
+  P8 --> P9[9 Verify]
+```
+
+Diagram index: [DIAGRAMS.md](DIAGRAMS.md) · SSH detail: [SSH_CA.md](SSH_CA.md)
+
 ---
 
 ## 0. Prerequisites

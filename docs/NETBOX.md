@@ -83,6 +83,21 @@ Apply policy [`../policies/netbox-agent.hcl`](../policies/netbox-agent.hcl).
 
 Typical flow:
 
+```mermaid
+sequenceDiagram
+  participant NC as NetClaw
+  participant NB as NetBox
+  participant V as Vault
+  participant D as Device
+
+  NC->>NB: device, mgmt IP, platform, vault_path, vault_ssh_role
+  NB-->>NC: metadata only
+  NC->>V: KV read and/or ssh/sign
+  V-->>NC: secret / cert injected
+  NC->>D: pyATS / SSH / gNMI
+  D-->>NC: evidence for chat
+```
+
 1. Ask NetBox (MCP/API): device, management IP, platform, `vault_path`.
 2. Ask Vault MCP: read credentials or issue SSH OTP/cert for that path/role.
 3. Connect with pyATS / SSH — inject secrets into the tool, never into the chat transcript.

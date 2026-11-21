@@ -14,6 +14,16 @@ Upstream references:
 
 ## 1. Security rules for agents
 
+```mermaid
+flowchart LR
+  Chat[Chat / Canvas] -->|no secret values| NC[NetClaw]
+  NC -->|AppRole netclaw-read| V[(Vault)]
+  V -->|inject only| Tools[pyATS / SSH / files]
+  Tools --> Dev[Devices]
+  NC -.->|change role + approval| Gate[DefenseClaw]
+  Gate --> V
+```
+
 1. **Never** put device passwords in `SOUL.md`, skills, or git-tracked `.env`.
 2. Secret **values must not appear** in chat, Canvas, or logs — inject into tools/files only.
 3. Default policy = **read/troubleshoot**. Change/write uses a separate role + human approval (DefenseClaw).

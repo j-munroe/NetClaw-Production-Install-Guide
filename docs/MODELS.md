@@ -14,6 +14,15 @@ For on-prem GitLab, NetBox, Vault, Ansible, and production-leaning NetClaw use:
 
 **Default:** Claude as Main. Local for fallback/compaction (or air-gapped Main). OpenAI only if procurement/security already standardizes on it.
 
+```mermaid
+flowchart TB
+  Turn[Agent turn] --> Main[Main model]
+  Main -->|OK| Out[Tool calls / reply]
+  Main -->|provider failure| FB[Fallback model]
+  FB --> Out
+  Compact[Context compaction / titles] --> Small[Compaction model<br/>often local qwen3:8b]
+```
+
 ---
 
 ## How NetClaw uses models

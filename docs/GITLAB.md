@@ -23,6 +23,19 @@ Official references:
 
 Premium’s `secrets:vault` keyword is optional sugar later — see §5.
 
+```mermaid
+flowchart LR
+  subgraph ce [GitLab CE — recommended]
+    J1[id_tokens JWT] --> L1[vault write auth/jwt/login]
+    L1 --> T1[VAULT_TOKEN]
+    T1 --> K1[vault kv get / Ansible lookup]
+  end
+  subgraph prem [Premium+ optional]
+    J2[id_tokens JWT] --> S2[secrets:vault]
+    S2 --> E2[env / file vars]
+  end
+```
+
 ---
 
 ## 1. Vault JWT auth
