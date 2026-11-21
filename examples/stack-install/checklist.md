@@ -52,7 +52,8 @@ From [docs/STACK_INSTALL.md](../../docs/STACK_INSTALL.md).
 ## 10 Platforms
 
 - [ ] Day-1 controllers in Vault + NetBox + MCP (read-only)
-- [ ] NMS + SaaS + XR (+ ND SAN if in scope) smoke OK
+- [ ] NMS + SaaS + XR (+ ND SAN / ClearPass CPPM if in scope) smoke OK
+- [ ] ClearPass: Onboard remains X.509; Policy Manager API uses `secret/platform/aruba/clearpass`
 
 ## 11 Dev Containers
 

@@ -67,7 +67,7 @@ flowchart LR
 | [MODELS.md](MODELS.md) | Claude vs OpenAI vs local |
 | [LOCAL_LLM.md](LOCAL_LLM.md) | Production-capable Ollama + Qwen3 |
 | [SSH_CA.md](SSH_CA.md) | SSH CA vs ClearPass; zero-touch seeding |
-| [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md) | Controllers, NMS, DDI, ND SAN, XR, … |
+| [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md) | Controllers, NMS, DDI, ClearPass CPPM, ND SAN, XR, … |
 
 ## 5. Reference
 
@@ -86,7 +86,7 @@ flowchart LR
 - **Production Vault**: HA Raft, TLS, auto-unseal, audit, snapshots — [INSTALL.md](INSTALL.md)
 - **GitLab Community Edition** on-prem (JWT + Vault CLI, not `secrets:vault`)
 - **NetBox Community** as inventory SoT (paths, not passwords)
-- **ClearPass Onboard** for X.509 / NAC (not Vault SSH CA)
+- **ClearPass Onboard** for X.509 / NAC PKI (not Vault SSH CA); **ClearPass Policy Manager** API as a NetClaw platform integration ([PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md))
 - **DefenseClaw** (open source) for NetClaw MCP scan + runtime guardrails ([DEFENSECLAW.md](DEFENSECLAW.md))
 - **Pinned** package versions in production ([VERSIONS.md](VERSIONS.md))
 

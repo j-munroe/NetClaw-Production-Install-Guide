@@ -42,6 +42,17 @@
         "ND_SAN_API_KEY": "${ND_SAN_API_KEY}",
         "ND_SAN_VERIFY_TLS": "${ND_SAN_VERIFY_TLS}"
       }
+    },
+    "aruba-clearpass-mcp": {
+      "command": "aruba-clearpass-mcp",
+      "args": [],
+      "env": {
+        "CLEARPASS_BASE_URL": "${CLEARPASS_BASE_URL}",
+        "CLEARPASS_CLIENT_ID": "${CLEARPASS_CLIENT_ID}",
+        "CLEARPASS_CLIENT_SECRET": "${CLEARPASS_CLIENT_SECRET}",
+        "CLEARPASS_GRANT_TYPE": "${CLEARPASS_GRANT_TYPE}",
+        "CLEARPASS_VERIFY_TLS": "${CLEARPASS_VERIFY_TLS}"
+      }
     }
   }
 }

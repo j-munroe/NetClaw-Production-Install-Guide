@@ -5,7 +5,7 @@
 > ← [SSH CA](SSH_CA.md) · [Diagrams](DIAGRAMS.md) →
 <!-- doc-nav:end -->
 
-How NetClaw reaches **your** production controllers, NMS, DDI, edge, SAN (Nexus Dashboard), and IOS-XR devices — with **Vault** as secrets SoT, **NetBox** as inventory, and **DefenseClaw** scanning every MCP.
+How NetClaw reaches **your** production controllers, NMS, DDI, NAC (ClearPass Policy Manager), edge, SAN (Nexus Dashboard), and IOS-XR devices — with **Vault** as secrets SoT, **NetBox** as inventory, and **DefenseClaw** scanning every MCP.
 
 Upstream NetClaw already ships first-class MCP/skills for some of these (CloudVision, Cloudflare, Zabbix, Prisma/SASE-style Palo Alto APIs, pyATS/SSH). Others use the same pattern: **API token in Vault → MCP or skill → DefenseClaw register/scan → stage then prod**.
 
@@ -27,7 +27,7 @@ flowchart TB
   MCP -->|AppRole inject| V
   NB -->|vault_path / urls / roles| NC
   MCP --> SaaS[SaaS controllers]
-  MCP --> OnPrem[On-prem NMS / EPNM / DDI]
+  MCP --> OnPrem[On-prem NMS / EPNM / DDI / ClearPass]
   MCP --> SAN[Nexus Dashboard SAN / NDFC]
   MCP --> XR[IOS-XR via SSH CA / pyATS]
 ```
@@ -60,6 +60,7 @@ flowchart TB
 | 10 | **EfficientIP SolidServer (DDI)** | API key / user | Custom MCP or REST skill (DNS/DHCP/IPAM) | `secret/platform/efficientip/solidserver` | Align zones/subnets with NetBox |
 | 11 | **Aruba EdgeConnect Global Manager (SaaS)** | Orchestrator API | Custom/community MCP or REST skill | `secret/platform/aruba/edgeconnect-gm` | SD-WAN; read-only first |
 | 12 | **Cisco Nexus Dashboard — SAN** (NDFC SAN Controller) | On-prem ND login / API key + NDFC SAN REST | Custom MCP or REST skill over ND + SAN APIs | `secret/platform/cisco/nexus-dashboard-san` | Prefer API key for automation; read-only first |
+| 13 | **Aruba ClearPass Policy Manager (CPPM)** | On-prem OAuth2 REST API (`/api/oauth` + `/api/…`) | Custom MCP or REST skill (endpoints, sessions, guests, insights) | `secret/platform/aruba/clearpass` | NAC SoT; **Onboard** stays X.509 — this row is Policy Manager API |
 
 Examples: [`../examples/production-envs/`](../examples/production-envs/).
 
@@ -95,6 +96,7 @@ secret/platform/
   aruba/central-classic             # base_url, client_id, client_secret, customer_id, …
   aruba/central-cnx                 # CNX MCP credentials (separate object)
   aruba/edgeconnect-gm              # base_url, api_token
+  aruba/clearpass                   # base_url, client_id, client_secret, grant_type, verify_tls
   cloudflare                        # api_token, account_id, zone_id (optional)
   efficientip/solidserver           # base_url, api_key or user/pass
 ```
@@ -119,6 +121,13 @@ vault kv put secret/platform/cisco/nexus-dashboard-san \
   base_url="https://nd.example.local" \
   api_key="CHANGE_ME" \
   domain="DefaultAuth" \
+  verify_tls="true"
+
+vault kv put secret/platform/aruba/clearpass \
+  base_url="https://clearpass.example.local" \
+  client_id="netclaw-api" \
+  client_secret="CHANGE_ME" \
+  grant_type="client_credentials" \
   verify_tls="true"
 ```
 
@@ -247,6 +256,46 @@ If you must use user/password instead of API key, store `username` / `password` 
 
 - Allowlist `nd.example.local:443` (and any ND cluster VIPs) from the NetClaw host / OpenShell policy.
 
+### 5.13 Aruba ClearPass Policy Manager (CPPM)
+
+ClearPass is already in this stack as **Onboard** for X.509 / 802.1X / device TLS ([SSH_CA.md](SSH_CA.md)). This row is different: wire **Policy Manager’s REST API** so NetClaw can query NAC state (endpoints, sessions, guests, insights) with Vault-held OAuth2 credentials — without treating ClearPass as SSH CA or putting API secrets in NetBox.
+
+**Auth (HPE ClearPass API pattern)**
+
+- Create an API client under Guest → Administration → API Services → API Clients: Operating Mode **ClearPass REST API**, Grant Type **Client credentials**, Operator Profile least-privilege (prefer **Read-only Administrator** or a custom profile for endpoints/sessions only).
+- Token: `POST https://<clearpass-fqdn>/api/oauth` with `grant_type=client_credentials`, `client_id`, `client_secret` → Bearer token for `/api/…` calls.
+- In-product OpenAPI: `https://<clearpass-fqdn>/api-docs`. Getting started: [ClearPass Policy Manager API](https://developer.arubanetworks.com/cppm/docs/getting-started-with-the-clearpass-policy-manager-api).
+
+**Vault**
+
+```bash
+vault kv put secret/platform/aruba/clearpass \
+  base_url="https://clearpass.example.local" \
+  client_id="netclaw-api" \
+  client_secret="CHANGE_ME" \
+  grant_type="client_credentials" \
+  verify_tls="true"
+```
+
+Trust the ClearPass TLS CA on the NetClaw host (`REQUESTS_CA_BUNDLE` / system trust). Do not use `verify_tls=false` in production. Rotate `client_secret` on the security calendar; store only in Vault.
+
+**NetClaw / MCP**
+
+- Until a first-class NetClaw MCP exists in your tree: thin **read-only** REST MCP/skill that lists endpoints, active sessions, and guest/insight summaries via CPPM APIs.
+- Register as e.g. `aruba-clearpass-mcp`; `defenseclaw mcp set` + `scan`.
+- Gate any endpoint create/update, guest create, or enforcement mutations behind DefenseClaw tool blocks + change window + `netclaw-change`.
+- **Do not** use this MCP to replace Onboard enrollment or Vault SSH CA — Onboard remains NAC X.509 SoT; Vault remains SSH CA.
+
+**NetBox**
+
+- Tag ClearPass cluster / VIP as a platform object: `controller=clearpass`, `controller_url=https://clearpass.example.local`, `vault_path=platform/aruba/clearpass`.
+- Optional: tag wired/wireless edge devices `nac=clearpass` for correlation; device SSH still uses Vault / SSH CA separately.
+- Never store ClearPass operator passwords or API client secrets in NetBox.
+
+**Egress**
+
+- Allowlist `clearpass.example.local:443` (and publisher/subscriber VIP hostnames if clustered) from the NetClaw host / OpenShell policy.
+
 ---
 
 ## 6. DefenseClaw & egress
@@ -255,7 +304,7 @@ If you must use user/password instead of API key, store `username` / `password` 
 # After each MCP is configured
 defenseclaw mcp set zabbix-mcp --command …   # per your install
 defenseclaw mcp scan zabbix-mcp
-# Repeat for cvaas, cloudflare, aruba-central-*, nexus-dashboard-san, custom REST MCPs, vault-mcp, pyats-mcp
+# Repeat for cvaas, cloudflare, aruba-central-*, aruba-clearpass, nexus-dashboard-san, custom REST MCPs, vault-mcp, pyats-mcp
 ```
 
 OpenShell / host firewall allowlist (sketch):
@@ -265,7 +314,7 @@ OpenShell / host firewall allowlist (sketch):
 | `vault.example.local:8200` | Secrets |
 | `netbox.example.local:443` | Inventory |
 | CVaaS / Strata / Central / EdgeConnect / VeloCloud / Cloudflare API hosts | SaaS |
-| `epnm.example.local`, `nd.example.local` (Nexus Dashboard SAN), `zabbix.example.local`, `observium.example.local`, SolidServer | On-prem |
+| `epnm.example.local`, `nd.example.local` (Nexus Dashboard SAN), `clearpass.example.local` (CPPM API), `zabbix.example.local`, `observium.example.local`, SolidServer | On-prem |
 | XR / bastion management prefixes | SSH |
 
 Deny arbitrary internet SSH from the agent sandbox when possible; use bastions.
@@ -283,7 +332,8 @@ flowchart LR
   E --> F[Strata Cloud Manager]
   F --> G[EdgeConnect GM + VeloCloud]
   G --> H[EPNM + ND SAN + SolidServer]
-  H --> I[Prod write windows]
+  H --> I[ClearPass CPPM API read]
+  I --> J[Prod write windows]
 ```
 
 1. Platform secrets in Vault + NetBox metadata  
@@ -294,7 +344,8 @@ flowchart LR
 6. Strata Cloud Manager  
 7. EdgeConnect GM + VeloCloud  
 8. EPNM + **Nexus Dashboard SAN** + EfficientIP  
-9. Carefully open write tools under change control (including SAN zoning)  
+9. **Aruba ClearPass Policy Manager** API (read-only; Onboard stays X.509)  
+10. Carefully open write tools under change control (including SAN zoning / ClearPass mutations)  
 
 ---
 

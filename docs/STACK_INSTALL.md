@@ -43,8 +43,8 @@ Pin all versions ([VERSIONS.md](VERSIONS.md)). Replace every `CHANGE_ME` / examp
 | 8 | **OpenShell** | Optional | Agent sandbox isolation | [DEFENSECLAW.md](DEFENSECLAW.md) |
 | 9 | **LLM** (Claude and/or OpenAI and/or Ollama) | **Yes** | Main / Fallback / Compaction | [MODELS.md](MODELS.md) · [LOCAL_LLM.md](LOCAL_LLM.md) |
 | 10 | **SSH CA** (Vault) + bastions | **Yes** (recommended) | Short-lived device/bastion SSH | [SSH_CA.md](SSH_CA.md) |
-| 11 | **ClearPass Onboard** | Existing | X.509 / NAC (not SSH CA) | [SSH_CA.md](SSH_CA.md) |
-| 12 | **Platform MCPs** (CVaaS, Zabbix, Central, ND SAN, …) | As needed | Controller / NMS access | [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md) |
+| 11 | **ClearPass Onboard** | Existing | X.509 / NAC PKI (not SSH CA) | [SSH_CA.md](SSH_CA.md) |
+| 12 | **Platform MCPs** (CVaaS, Zabbix, Central, ClearPass CPPM, ND SAN, …) | As needed | Controller / NMS / NAC API access | [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md) |
 | 13 | **Dev Containers** | Optional | Engineer Vault-backed Ansible | [DEVCONTAINERS.md](DEVCONTAINERS.md) |
 
 Upstream NetClaw installer: [automateyournetwork/netclaw](https://github.com/automateyournetwork/netclaw) `./scripts/install.sh` (pin a release; verify checksums in production).
@@ -277,7 +277,7 @@ Use [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md). Suggested first wa
 2. Arista CVaaS + Cloudflare (read)  
 3. IOS-XR via SSH CA (stage)  
 4. Nexus Dashboard SAN (read)  
-5. Then Central, Strata, EdgeConnect, VeloCloud, EPNM, SolidServer  
+5. Then Central, Strata, EdgeConnect, VeloCloud, EPNM, SolidServer, **ClearPass Policy Manager** (API read; Onboard stays X.509)  
 
 For each:
 

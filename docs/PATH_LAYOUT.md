@@ -76,6 +76,7 @@ secret/                          # KV v2 mount
     aruba/central-classic
     aruba/central-cnx
     aruba/edgeconnect-gm
+    aruba/clearpass                  # CPPM OAuth2 API (Onboard X.509 stays separate)
     cloudflare/
     efficientip/solidserver
   network/

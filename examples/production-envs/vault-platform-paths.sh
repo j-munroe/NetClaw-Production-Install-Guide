@@ -66,6 +66,13 @@ vault kv put secret/platform/aruba/edgeconnect-gm \
   base_url="https://CHANGE_ME" \
   api_token="CHANGE_ME"
 
+vault kv put secret/platform/aruba/clearpass \
+  base_url="https://clearpass.example.local" \
+  client_id="netclaw-api" \
+  client_secret="CHANGE_ME" \
+  grant_type="client_credentials" \
+  verify_tls="true"
+
 # Example IOS-XR device residual static creds (prefer SSH CA in prod)
 vault kv put secret/network/prod/dc1/xr-pe-01/credentials \
   username="netops" \

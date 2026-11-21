@@ -4,13 +4,14 @@ Suggested custom fields or tags so NetClaw and Ansible resolve controllers witho
 
 | Field / tag | Example | Used for |
 |-------------|---------|----------|
-| `controller` | `cvaas`, `strata-cloud-manager`, `zabbix`, `aruba-central-cnx`, `nexus-dashboard-san`, … | Which plane owns the object |
-| `controller_url` | `https://zabbix.example.local` or `https://nd.example.local` | Non-secret base URL |
-| `vault_path` | `platform/zabbix` or `platform/cisco/nexus-dashboard-san` or device path | Vault lookup |
+| `controller` | `cvaas`, `strata-cloud-manager`, `zabbix`, `aruba-central-cnx`, `nexus-dashboard-san`, `clearpass`, … | Which plane owns the object |
+| `controller_url` | `https://zabbix.example.local`, `https://nd.example.local`, or `https://clearpass.example.local` | Non-secret base URL |
+| `vault_path` | `platform/zabbix`, `platform/cisco/nexus-dashboard-san`, `platform/aruba/clearpass`, or device path | Vault lookup |
 | `vault_ssh_role` | `netclaw-troubleshoot` | IOS-XR / bastion SSH CA |
 | `credential_env` | `stage` / `prod` | Path segment |
-| `mcp_name` | `zabbix-mcp`, `arista-cvp`, `aruba-central-cnx`, `nexus-dashboard-san-mcp` | DefenseClaw / OpenClaw registration name |
+| `mcp_name` | `zabbix-mcp`, `arista-cvp`, `aruba-central-cnx`, `nexus-dashboard-san-mcp`, `aruba-clearpass-mcp` | DefenseClaw / OpenClaw registration name |
 | `san_fabric` | ND/NDFC fabric or site name | SAN switches under Nexus Dashboard |
+| `nac` | `clearpass` | Edge devices enrolled via ClearPass NAC |
 
 ## Example devices
 
@@ -35,5 +36,15 @@ Suggested custom fields or tags so NetClaw and Ansible resolve controllers witho
 - `vault_path`: `platform/cisco/nexus-dashboard-san`
 - `san_fabric`: matching ND/NDFC fabric name
 - Inventory truth: Nexus Dashboard SAN + NetBox cross-check
+
+**ClearPass Policy Manager (NAC API)**
+
+- Name: `clearpass-vip` (or cluster VIP hostname)
+- `controller`: `clearpass`
+- `controller_url`: `https://clearpass.example.local`
+- `vault_path`: `platform/aruba/clearpass`
+- `mcp_name`: `aruba-clearpass-mcp`
+- Onboard / X.509 enrollment stays operational in ClearPass; this object is for API credentials in Vault only
+- Edge APs/switches may carry tag `nac=clearpass` for correlation
 
 Do **not** store API tokens in NetBox.

@@ -1,6 +1,6 @@
 # NetClaw Production Install Guide
 
-Complete **production** documentation for **NetClaw** and associated components — with **HashiCorp Vault** as the secrets system of record for **GitLab CE**, **Ansible**, **NetBox**, **Dev Containers**, **DefenseClaw**, MCP servers, and your network platforms (CVaaS, Strata, Central, Nexus Dashboard SAN, Cloudflare, IOS-XR, and more).
+Complete **production** documentation for **NetClaw** and associated components — with **HashiCorp Vault** as the secrets system of record for **GitLab CE**, **Ansible**, **NetBox**, **Dev Containers**, **DefenseClaw**, MCP servers, and your network platforms (CVaaS, Strata, Central, ClearPass, Nexus Dashboard SAN, Cloudflare, IOS-XR, and more).
 
 **Repository:** [j-munroe/NetClaw-Production-Install-Guide](https://github.com/j-munroe/NetClaw-Production-Install-Guide)
 
@@ -44,7 +44,8 @@ flowchart LR
 | **Ansible** | `community.hashi_vault` lookups |
 | **NetBox Community** | Inventory + `vault_path` (no passwords) |
 | **VS Code Dev Containers** | Host Vault auth via `remoteEnv` / OIDC |
-| **ClearPass Onboard** | X.509 / NAC (separate from SSH CA) |
+| **ClearPass Onboard** | X.509 / NAC PKI (separate from SSH CA) |
+| **ClearPass Policy Manager** | NAC API integration via Vault + MCP ([PRODUCTION_ENVIRONMENTS.md](docs/PRODUCTION_ENVIRONMENTS.md)) |
 
 ## System overview
 
