@@ -202,7 +202,19 @@ Guide: [LOCAL_LLM.md](LOCAL_LLM.md)
 
 ---
 
-## 14. SSH CA, ClearPass, zero-touch
+## 14. Production environments (controllers / NMS / XR)
+
+Guide: [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md)
+
+- Store every controller token under `secret/platform/…`; IOS-XR under `secret/network/…` + prefer SSH CA.
+- Register and DefenseClaw-scan each MCP (CVaaS, Cloudflare, Zabbix, Aruba Central classic/CNX, etc.).
+- NetBox holds URLs, org IDs, `vault_path`, controller tags — never API secrets.
+- Enable read-only / stage first; gate SaaS and EPNM writes behind change windows.
+- Allowlist egress per SaaS/on-prem API; XR via bastion/SSH CA ([SSH_CA.md](SSH_CA.md)).
+
+---
+
+## 15. SSH CA, ClearPass, zero-touch
 
 Guide: [SSH_CA.md](SSH_CA.md) · [INSTALL.md](INSTALL.md) §8
 
@@ -219,7 +231,7 @@ Guide: [SSH_CA.md](SSH_CA.md) · [INSTALL.md](INSTALL.md) §8
 
 ---
 
-## 15. Policies & examples
+## 16. Policies & examples
 
 Guides: [../policies/README.md](../policies/README.md) · [../examples/README.md](../examples/README.md)
 
@@ -229,7 +241,7 @@ Guides: [../policies/README.md](../policies/README.md) · [../examples/README.md
 
 ---
 
-## 16. Operate & harden (ongoing)
+## 17. Operate & harden (ongoing)
 
 Guide: [WORKPLAN.md](WORKPLAN.md) Phase 7 · [SECURITY.md](SECURITY.md)
 
@@ -265,6 +277,7 @@ Success metrics: zero prod passwords in CI variables; zero committed `.env` devi
 | Models | [MODELS.md](MODELS.md) |
 | Local LLM | [LOCAL_LLM.md](LOCAL_LLM.md) |
 | SSH CA / ClearPass | [SSH_CA.md](SSH_CA.md) |
+| Prod controllers / NMS / XR | [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md) |
 | Diagrams | [DIAGRAMS.md](DIAGRAMS.md) |
 
 <!-- doc-footer:start -->

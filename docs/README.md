@@ -23,7 +23,7 @@ flowchart LR
 | **1. Design** | Trust boundaries, security, delivery, best practices | [ARCHITECTURE](ARCHITECTURE.md) → [SECURITY](SECURITY.md) → [WORKPLAN](WORKPLAN.md) → [BEST_PRACTICES](BEST_PRACTICES.md) |
 | **2. Build** | HA install, pinned versions, path layout | [VERSIONS](VERSIONS.md) → [INSTALL](INSTALL.md) → [PATH_LAYOUT](PATH_LAYOUT.md) |
 | **3. Integrate** | CI, Ansible, Dev Containers, NetBox | [GITLAB](GITLAB.md) → [ANSIBLE](ANSIBLE.md) → [DEVCONTAINERS](DEVCONTAINERS.md) → [NETBOX](NETBOX.md) |
-| **4. Agent** | NetClaw, DefenseClaw, models, local LLM, SSH CA | [NETCLAW](NETCLAW.md) → [DEFENSECLAW](DEFENSECLAW.md) → [MODELS](MODELS.md) → [LOCAL_LLM](LOCAL_LLM.md) → [SSH_CA](SSH_CA.md) |
+| **4. Agent** | NetClaw, DefenseClaw, models, SSH CA, prod envs | [NETCLAW](NETCLAW.md) → [DEFENSECLAW](DEFENSECLAW.md) → [MODELS](MODELS.md) → [LOCAL_LLM](LOCAL_LLM.md) → [SSH_CA](SSH_CA.md) → [PRODUCTION_ENVIRONMENTS](PRODUCTION_ENVIRONMENTS.md) |
 | **5. Reference** | Diagrams, examples, policies, scripts | [DIAGRAMS](DIAGRAMS.md) · [../examples/](../examples/) · [../policies/](../policies/) · [../scripts/](../scripts/) |
 
 ---
@@ -63,6 +63,7 @@ flowchart LR
 | [MODELS.md](MODELS.md) | Claude vs OpenAI vs local |
 | [LOCAL_LLM.md](LOCAL_LLM.md) | Production-capable Ollama + Qwen3 |
 | [SSH_CA.md](SSH_CA.md) | SSH CA vs ClearPass; zero-touch seeding |
+| [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md) | Connect NetClaw to your controllers, NMS, DDI, XR |
 
 ## 5. Reference
 
@@ -94,3 +95,4 @@ flowchart LR
 4. Wire separate GitLab JWT roles ([GITLAB](GITLAB.md)) and one playbook ([ANSIBLE](ANSIBLE.md)).
 5. Enable NetClaw AppRole on stage; wire DefenseClaw observe→action ([NETCLAW](NETCLAW.md), [DEFENSECLAW](DEFENSECLAW.md)).
 6. Promote prod paths after audit review; roll SSH CA + zero-touch bastion trust ([SSH_CA](SSH_CA.md)).
+7. Connect production platforms per [PRODUCTION_ENVIRONMENTS](PRODUCTION_ENVIRONMENTS.md) (CVaaS, Strata, Central, Cloudflare, XR, …).

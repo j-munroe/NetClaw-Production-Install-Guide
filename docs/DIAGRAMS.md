@@ -2,7 +2,7 @@
 
 <!-- doc-nav:start -->
 > **Hub:** [Documentation home](README.md) · **5. Reference**  
-> ← [SSH CA](SSH_CA.md)
+> ← [Production environments](PRODUCTION_ENVIRONMENTS.md)
 <!-- doc-nav:end -->
 
 Mermaid diagrams render on GitHub. Each guide embeds diagrams in context; this page is the map.
@@ -28,6 +28,7 @@ Mermaid diagrams render on GitHub. Each guide embeds diagrams in context; this p
 | 4 Agent | Model roles | Main / Fallback / Compaction | [MODELS.md](MODELS.md) |
 | 4 Agent | Local LLM | Ollama hybrid | [LOCAL_LLM.md](LOCAL_LLM.md) |
 | 4 Agent | SSH CA / ClearPass / zero-touch | Sequences + flowcharts | [SSH_CA.md](SSH_CA.md) |
+| 4 Agent | Production controllers / NMS / XR | Connection matrix | [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md) |
 
 <!-- doc-footer:start -->
 ---

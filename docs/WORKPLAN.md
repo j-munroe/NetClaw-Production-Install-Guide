@@ -219,17 +219,19 @@ ssh/roles/netclaw-change
 - [ ] Wire DefenseClaw tool blocks + Vault `netclaw-change` for approved change windows
 - [ ] Explicit change control before enabling `prod/` reads
 - [ ] Optional: OpenShell sandbox with allowlisted Vault / NetBox / GitLab / LLM egress
+- [ ] Connect production platforms per [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md) (read-only first): Strata Cloud Manager, CVaaS, VeloCloud, EPNM, Zabbix, Observium, Aruba Central classic/CNX, Cloudflare, IOS-XR SSH, SolidServer, EdgeConnect GM
 
 **Acceptance**
 
 - NetClaw connects to stage devices using Vault-sourced creds or SSH certs
+- At least one SaaS controller + one NMS + one XR path validated with Vault + DefenseClaw
 - Chat/UI shows redacted values only
 - Vault audit shows agent identity on each read
 - DefenseClaw sidecar up; MCP scan clean; observe→action soak recorded
 - Change-window drill: allow tools → elevate → revoke → re-block
 - Prod path access only after sign-off
 
-**Guide:** [NETCLAW.md](NETCLAW.md) · [DEFENSECLAW.md](DEFENSECLAW.md) · [MODELS.md](MODELS.md) · [LOCAL_LLM.md](LOCAL_LLM.md)
+**Guide:** [NETCLAW.md](NETCLAW.md) · [DEFENSECLAW.md](DEFENSECLAW.md) · [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md) · [MODELS.md](MODELS.md) · [LOCAL_LLM.md](LOCAL_LLM.md)
 
 ---
 

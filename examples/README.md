@@ -16,6 +16,7 @@ Copy-paste snippets that accompany the guides. Prefer reading the linked doc bef
 | [local-llm/](local-llm/) | Ollama / NetClaw compose | [LOCAL_LLM](../docs/LOCAL_LLM.md) |
 | [openclaw-vault.json](openclaw-vault.json) | Vault MCP registration | [NETCLAW](../docs/NETCLAW.md) |
 | [defenseclaw/](defenseclaw/) | MCP scan, OpenShell policy, change window | [DEFENSECLAW](../docs/DEFENSECLAW.md) |
+| [production-envs/](production-envs/) | Controller Vault paths + MCP sketch | [PRODUCTION_ENVIRONMENTS](../docs/PRODUCTION_ENVIRONMENTS.md) |
 | [orb-agent-vault.yaml](orb-agent-vault.yaml) | Orb secrets_manager | [NETBOX](../docs/NETBOX.md) |
 
 Flow: **docs (concept) → examples (snippet) → your repo**. Pin image/package versions for production ([../docs/VERSIONS.md](../docs/VERSIONS.md)).

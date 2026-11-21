@@ -11,6 +11,7 @@
 | **Delivery / project plan** | [docs/WORKPLAN.md](docs/WORKPLAN.md) |
 | **Security controls** | [docs/SECURITY.md](docs/SECURITY.md) |
 | **Best practices (all topics)** | [docs/BEST_PRACTICES.md](docs/BEST_PRACTICES.md) |
+| **NetClaw → production platforms** | [docs/PRODUCTION_ENVIRONMENTS.md](docs/PRODUCTION_ENVIRONMENTS.md) |
 | **Diagrams** | [docs/DIAGRAMS.md](docs/DIAGRAMS.md) |
 
 ```mermaid

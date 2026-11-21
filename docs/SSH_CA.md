@@ -2,7 +2,7 @@
 
 <!-- doc-nav:start -->
 > **Hub:** [Documentation home](README.md) · **4. Agent**  
-> ← [Local LLM](LOCAL_LLM.md) · [Diagrams](DIAGRAMS.md) →
+> ← [Local LLM](LOCAL_LLM.md) · [Production environments](PRODUCTION_ENVIRONMENTS.md) →
 <!-- doc-nav:end -->
 
 Deep dive for **INSTALL.md §8**. Covers Vault signed SSH certificates, how that differs from **HPE ClearPass Onboard** (X.509), and recommended CA roles in this stack.

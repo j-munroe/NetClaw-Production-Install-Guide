@@ -1,0 +1,38 @@
+{
+  "_comment": "Sketch only — inject real values from Vault into the host env. Docs: docs/PRODUCTION_ENVIRONMENTS.md",
+  "mcpServers": {
+    "vault-mcp": {
+      "command": "vault-mcp-server",
+      "args": [],
+      "env": {
+        "VAULT_ADDR": "${VAULT_ADDR}",
+        "VAULT_TOKEN": "${VAULT_TOKEN}"
+      }
+    },
+    "arista-cvp": {
+      "command": "arista-cvp-mcp",
+      "args": [],
+      "env": {
+        "CVP": "${CVP}",
+        "CVPTOKEN": "${CVPTOKEN}"
+      }
+    },
+    "zabbix-mcp": {
+      "command": "${ZABBIX_MCP_CMD}",
+      "args": [],
+      "env": {
+        "ZABBIX_URL": "${ZABBIX_URL}",
+        "ZABBIX_TOKEN": "${ZABBIX_TOKEN}"
+      }
+    },
+    "cloudflare": {
+      "command": "cloudflare-mcp",
+      "args": [],
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "${CLOUDFLARE_API_TOKEN}",
+        "CLOUDFLARE_ACCOUNT_ID": "${CLOUDFLARE_ACCOUNT_ID}",
+        "CLOUDFLARE_ZONE_ID": "${CLOUDFLARE_ZONE_ID}"
+      }
+    }
+  }
+}
