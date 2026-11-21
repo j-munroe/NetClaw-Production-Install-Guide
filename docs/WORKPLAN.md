@@ -2,7 +2,7 @@
 
 <!-- doc-nav:start -->
 > **Hub:** [Documentation home](README.md) · **1. Design**  
-> ← [Security](SECURITY.md) · [Versions](VERSIONS.md) →
+> ← [Security](SECURITY.md) · [Best practices](BEST_PRACTICES.md) →
 <!-- doc-nav:end -->
 
 ## Goal

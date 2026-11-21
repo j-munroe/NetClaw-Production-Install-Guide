@@ -20,7 +20,7 @@ flowchart LR
 
 | Step | Focus | Start with |
 |------|--------|------------|
-| **1. Design** | Trust boundaries, security rules, delivery phases | [ARCHITECTURE](ARCHITECTURE.md) → [SECURITY](SECURITY.md) → [WORKPLAN](WORKPLAN.md) |
+| **1. Design** | Trust boundaries, security, delivery, best practices | [ARCHITECTURE](ARCHITECTURE.md) → [SECURITY](SECURITY.md) → [WORKPLAN](WORKPLAN.md) → [BEST_PRACTICES](BEST_PRACTICES.md) |
 | **2. Build** | HA install, pinned versions, path layout | [VERSIONS](VERSIONS.md) → [INSTALL](INSTALL.md) → [PATH_LAYOUT](PATH_LAYOUT.md) |
 | **3. Integrate** | CI, Ansible, Dev Containers, NetBox | [GITLAB](GITLAB.md) → [ANSIBLE](ANSIBLE.md) → [DEVCONTAINERS](DEVCONTAINERS.md) → [NETBOX](NETBOX.md) |
 | **4. Agent** | NetClaw, DefenseClaw, models, local LLM, SSH CA | [NETCLAW](NETCLAW.md) → [DEFENSECLAW](DEFENSECLAW.md) → [MODELS](MODELS.md) → [LOCAL_LLM](LOCAL_LLM.md) → [SSH_CA](SSH_CA.md) |
@@ -35,6 +35,7 @@ flowchart LR
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Trust zones, data flows, NetBox vs Vault |
 | [SECURITY.md](SECURITY.md) | Fail closed, TTLs, HA/ops controls, rotation |
 | [WORKPLAN.md](WORKPLAN.md) | Phased production delivery + acceptance |
+| [BEST_PRACTICES.md](BEST_PRACTICES.md) | Best practices per topic (Vault → NetClaw stack) |
 
 ## 2. Build
 
@@ -87,7 +88,7 @@ flowchart LR
 
 ## Suggested cutover sequence
 
-1. Read [ARCHITECTURE](ARCHITECTURE.md) + [SECURITY](SECURITY.md); sign off [WORKPLAN](WORKPLAN.md) Phase 0.
+1. Read [ARCHITECTURE](ARCHITECTURE.md) + [SECURITY](SECURITY.md) + [BEST_PRACTICES](BEST_PRACTICES.md); sign off [WORKPLAN](WORKPLAN.md) Phase 0.
 2. Deploy HA Vault per [INSTALL](INSTALL.md); complete raft peer check + snapshot restore drill.
 3. Adopt [PATH_LAYOUT](PATH_LAYOUT.md) Strategy A; load `stage` secrets first, then `prod`.
 4. Wire separate GitLab JWT roles ([GITLAB](GITLAB.md)) and one playbook ([ANSIBLE](ANSIBLE.md)).

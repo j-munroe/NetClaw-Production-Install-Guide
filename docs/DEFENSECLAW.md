@@ -291,6 +291,7 @@ Retain per org policy. DefenseClaw does **not** replace Vault audit for secret a
 | SSH CA vs ClearPass | [SSH_CA.md](SSH_CA.md) |
 | Fail closed / TTLs | [SECURITY.md](SECURITY.md) |
 | Delivery phase | [WORKPLAN.md](WORKPLAN.md) Phase 5 |
+| All-topic checklists | [BEST_PRACTICES.md](BEST_PRACTICES.md) |
 
 <!-- doc-footer:start -->
 ---

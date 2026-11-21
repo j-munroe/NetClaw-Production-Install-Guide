@@ -10,6 +10,7 @@
 | **Operators deploying Vault** | [docs/INSTALL.md](docs/INSTALL.md) — HA Raft, TLS, auto-unseal |
 | **Delivery / project plan** | [docs/WORKPLAN.md](docs/WORKPLAN.md) |
 | **Security controls** | [docs/SECURITY.md](docs/SECURITY.md) |
+| **Best practices (all topics)** | [docs/BEST_PRACTICES.md](docs/BEST_PRACTICES.md) |
 | **Diagrams** | [docs/DIAGRAMS.md](docs/DIAGRAMS.md) |
 
 ```mermaid

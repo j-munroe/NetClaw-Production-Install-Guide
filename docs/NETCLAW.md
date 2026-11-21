@@ -9,7 +9,8 @@ NetClaw integrates with the official Hashicorp **vault-mcp-server** so the agent
 
 For **DefenseClaw** (open-source scan + runtime guardrails + change gates), see [DEFENSECLAW.md](DEFENSECLAW.md).  
 For **which LLM to use** (Claude vs OpenAI vs local), see [MODELS.md](MODELS.md).  
-For **installing a local LLM** (Ollama + Qwen3), see [LOCAL_LLM.md](LOCAL_LLM.md).
+For **installing a local LLM** (Ollama + Qwen3), see [LOCAL_LLM.md](LOCAL_LLM.md).  
+For **best practices across the whole stack**, see [BEST_PRACTICES.md](BEST_PRACTICES.md).
 
 Upstream references:
 

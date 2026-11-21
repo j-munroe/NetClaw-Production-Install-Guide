@@ -5,7 +5,7 @@
 > [Security](SECURITY.md) →
 <!-- doc-nav:end -->
 
-Trust zones and data flows for Vault as secrets SoT. Start the full reading path at [Documentation home](README.md).
+Trust zones and data flows for Vault as secrets SoT. Start the full reading path at [Documentation home](README.md). Topic checklists: [BEST_PRACTICES.md](BEST_PRACTICES.md).
 
 ## Trust boundaries
 

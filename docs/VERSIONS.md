@@ -2,7 +2,7 @@
 
 <!-- doc-nav:start -->
 > **Hub:** [Documentation home](README.md) · **2. Build**  
-> ← [Workplan](WORKPLAN.md) · [Install](INSTALL.md) →
+> ← [Best practices](BEST_PRACTICES.md) · [Install](INSTALL.md) →
 <!-- doc-nav:end -->
 
 **Production default: pin immutable versions.** Track upstream “latest stable” only to decide *what* to pin next — do not run unpinned `:latest` in production.
