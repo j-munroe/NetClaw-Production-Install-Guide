@@ -1,5 +1,10 @@
 # Ansible playbooks → HashiCorp Vault
 
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **3. Integrate**  
+> ← [GitLab](GITLAB.md) · [Dev Containers](DEVCONTAINERS.md) →
+<!-- doc-nav:end -->
+
 Transition guide for automation that today uses Ansible Vault files, plaintext `group_vars`, or GitLab CI variables for device passwords, enable secrets, and API tokens.
 
 Use **HashiCorp Vault** as the secret store. Keep **Ansible Vault** only as a temporary bridge (or retire it) once lookups work.
@@ -263,3 +268,9 @@ Remove the `default(...)` once Vault is mandatory.
 - Vault audit shows reads from the CI JWT / AppRole identity
 - `git grep`-style review finds no plaintext prod passwords in the repo
 - Same playbook runs in GitLab CI and in a Dev Container using Vault ([DEVCONTAINERS.md](DEVCONTAINERS.md))
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->

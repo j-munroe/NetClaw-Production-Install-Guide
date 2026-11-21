@@ -1,5 +1,10 @@
 # NetBox Community + Vault
 
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **3. Integrate**  
+> ← [Dev Containers](DEVCONTAINERS.md) · [NetClaw](NETCLAW.md) →
+<!-- doc-nav:end -->
+
 NetBox remains the **inventory** source of truth. Vault remains the **secrets** source of truth.
 
 Do **not** store device passwords in NetBox custom fields as plaintext.
@@ -121,3 +126,9 @@ sequenceDiagram
 - [ ] `vault_path` convention documented for the team
 - [ ] Lab device end-to-end: NetBox lookup → Vault read → login
 - [ ] Confirm Community edition plugins/fields match your NetBox version
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->

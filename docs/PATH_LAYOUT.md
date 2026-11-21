@@ -1,5 +1,10 @@
 # Vault path layout strategies and designs
 
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **2. Build**  
+> ← [Install](INSTALL.md) · [GitLab](GITLAB.md) →
+<!-- doc-nav:end -->
+
 How to organize HashiCorp Vault mounts and KV paths for network automation with **GitLab CE**, **Ansible**, **NetBox**, **Dev Containers**, and **NetClaw**.
 
 Related: [INSTALL.md](INSTALL.md) · [SECURITY.md](SECURITY.md) · [NETBOX.md](NETBOX.md) · [GITLAB.md](GITLAB.md)
@@ -389,3 +394,9 @@ Seed samples: [`../scripts/03-write-sample-secrets.sh`](../scripts/03-write-samp
 - [ ] Platform tokens under `secret/platform/…`, not under device trees
 - [ ] SSH short-lived access planned under `ssh/roles/…`
 - [ ] No prod secrets readable by lab CI or default NetClaw read role
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->

@@ -1,28 +1,40 @@
-# NetClaw Vault Secrets
+# Vault Documentation
 
-Workplan and install setup for **HashiCorp Vault** as the secrets system of record for an agentic network-troubleshooting stack:
+**HashiCorp Vault** as the secrets system of record for agentic network troubleshooting with **GitLab CE**, **Ansible**, **NetBox**, **Dev Containers**, and **NetClaw**.
+
+## Start here
+
+| Audience | Go to |
+|----------|--------|
+| **First-time readers** | **[docs/README.md](docs/README.md)** — reading path & doc hub |
+| **Operators installing Vault** | [docs/INSTALL.md](docs/INSTALL.md) |
+| **Delivery / project plan** | [docs/WORKPLAN.md](docs/WORKPLAN.md) |
+| **Diagrams** | [docs/DIAGRAMS.md](docs/DIAGRAMS.md) |
+
+```mermaid
+flowchart LR
+  Hub[docs/README.md] --> Design[1 Design]
+  Hub --> Build[2 Build]
+  Hub --> Integ[3 Integrate]
+  Hub --> Agent[4 Agent]
+  Hub --> Ref[5 Reference]
+  Design --> Arch[Architecture]
+  Build --> Install[Install + paths]
+  Integ --> GL[GitLab / Ansible / NetBox]
+  Agent --> NC[NetClaw / SSH CA / models]
+```
+
+## Stack at a glance
 
 | Component | Role |
 |-----------|------|
-| **HashiCorp Vault** | Secrets vault (SSH creds, API tokens, short-lived certs) |
-| **GitLab (on-prem)** | Source control + CI/CD JWT auth into Vault |
-| **GitLab Runners** | Runtime that fetches secrets at job start |
-| **Ansible playbooks** | Runtime lookups via `community.hashi_vault` (CI + local) |
-| **VS Code Dev Containers** | Host Vault auth → `remoteEnv` / token mount (no secrets in image) |
-| **NetBox Community** | Inventory / source of truth (paths & metadata, not passwords) |
-| **NetClaw** | Agentic network engineer via Vault MCP |
-
-## Versions
-
-Docs and examples assume **latest stable** releases (Vault 2.x, Ollama, `community.hashi_vault`, etc.). See **[docs/VERSIONS.md](docs/VERSIONS.md)**. Pin tags in production after lab validation.
-
-## Why Vault
-
-- Native GitLab `secrets:vault` + JWT/OIDC (no long-lived CI tokens)
-- NetBox Discovery / Orb Agent can resolve Vault references
-- NetClaw ships a first-class **HashiCorp Vault MCP** integration
-- SSH secrets engine supports short-lived OTP / certificates for agents
-- Works fully on-prem
+| **HashiCorp Vault** | Secrets SoT (KV, SSH CA, optional PKI) |
+| **GitLab CE + Runners** | JWT → Vault CLI (Premium `secrets:vault` optional) |
+| **Ansible** | `community.hashi_vault` lookups |
+| **VS Code Dev Containers** | Host Vault auth via `remoteEnv` |
+| **NetBox Community** | Inventory + `vault_path` (no passwords) |
+| **NetClaw** | Agent + Vault MCP |
+| **ClearPass Onboard** | X.509 / NAC (separate from SSH CA) |
 
 ## System overview
 
@@ -55,37 +67,14 @@ flowchart TB
   DC -->|OIDC / token via host| V
   NB -->|paths only| NC
   NB -->|paths only| AN
-  V -->|SSH CA user certs / KV| B
+  V -->|SSH CA / KV| B
   B --> D
   CP -->|802.1X / device TLS| D
 ```
 
-More diagrams: **[docs/DIAGRAMS.md](docs/DIAGRAMS.md)**.
-
-## Docs
-
-| Doc | Purpose |
-|-----|---------|
-| [WORKPLAN.md](docs/WORKPLAN.md) | Phased delivery plan, owners, acceptance criteria |
-| [INSTALL.md](docs/INSTALL.md) | End-to-end install and bootstrap |
-| [PATH_LAYOUT.md](docs/PATH_LAYOUT.md) | Vault mount/path strategies (env/site/device designs) |
-| [SSH_CA.md](docs/SSH_CA.md) | Vault SSH CA mode, ClearPass Onboard vs X.509, bastions |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Trust boundaries and data flow |
-| [GITLAB.md](docs/GITLAB.md) | JWT auth + Vault for CE (CLI) and Premium (`secrets:vault`) |
-| [ANSIBLE.md](docs/ANSIBLE.md) | Migrate playbooks off Ansible Vault / CI passwords |
-| [DEVCONTAINERS.md](docs/DEVCONTAINERS.md) | VS Code Dev Containers without committed secrets |
-| [NETBOX.md](docs/NETBOX.md) | Inventory references, tokens, Orb Agent |
-| [NETCLAW.md](docs/NETCLAW.md) | Vault MCP, policies, safe agent access |
-| [MODELS.md](docs/MODELS.md) | Claude vs OpenAI vs local LLMs for NetClaw |
-| [LOCAL_LLM.md](docs/LOCAL_LLM.md) | Install Ollama + recommended Qwen3 models for NetClaw |
-| [VERSIONS.md](docs/VERSIONS.md) | Latest-stable version policy and current release snapshot |
-| [SECURITY.md](docs/SECURITY.md) | Least privilege, audit, rotation |
-| [DIAGRAMS.md](docs/DIAGRAMS.md) | Index of architecture / flow diagrams |
-
-## Quick start (lab)
+## Lab quick start
 
 ```bash
-# On a Linux host with Docker
 cd scripts
 ./01-bootstrap-vault.sh
 ./02-enable-engines.sh
@@ -93,19 +82,26 @@ cd scripts
 ./04-configure-approle.sh
 ```
 
-Then wire GitLab JWT ([GITLAB.md](docs/GITLAB.md)), Ansible ([ANSIBLE.md](docs/ANSIBLE.md)), Dev Containers ([DEVCONTAINERS.md](docs/DEVCONTAINERS.md)), NetClaw MCP ([NETCLAW.md](docs/NETCLAW.md)), model choice ([MODELS.md](docs/MODELS.md)), and local LLM install ([LOCAL_LLM.md](docs/LOCAL_LLM.md)).
+Then follow **[docs/README.md](docs/README.md)** from **Build → Integrate**. Versions: [docs/VERSIONS.md](docs/VERSIONS.md).
 
-## Package layout
+## Repository layout
 
 ```
 .
-├── README.md
-├── docs/           # Workplan + install + transition guides
-├── policies/       # Example Vault HCL policies
-├── scripts/        # Bootstrap helpers (lab/prod-shaped)
-└── examples/       # GitLab CI, Ansible, Dev Container, Orb, NetClaw snippets
+├── README.md          ← you are here (landing)
+├── docs/              ← guides (start at docs/README.md)
+├── policies/          ← example Vault HCL
+├── scripts/           ← lab bootstrap
+└── examples/          ← CI / Ansible / SSH CA / LLM snippets
 ```
+
+| Folder | Index |
+|--------|--------|
+| [docs/](docs/README.md) | All guides in reading order |
+| [examples/](examples/README.md) | Copy-paste snippets by topic |
+| [policies/](policies/README.md) | Vault ACL examples |
+| [scripts/](scripts/README.md) | Bootstrap helpers |
 
 ## Security note
 
-Scripts and examples use **placeholders only**. Never commit real tokens, root tokens, unseal keys, or device passwords. Store production secrets in Vault; keep GitLab variables limited to Vault addressing and auth config.
+Examples use **placeholders only**. Never commit real tokens, unseal keys, or device passwords. Production: pin image/package versions after lab validation ([VERSIONS.md](docs/VERSIONS.md)).

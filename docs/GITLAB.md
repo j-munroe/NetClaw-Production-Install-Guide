@@ -1,5 +1,10 @@
 # GitLab on-prem + Vault
 
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **3. Integrate**  
+> ← [Path layout](PATH_LAYOUT.md) · [Ansible](ANSIBLE.md) →
+<!-- doc-nav:end -->
+
 Wire GitLab CI/CD so jobs authenticate with **JWT ID tokens** and pull secrets from HashiCorp Vault. Do not store device passwords in GitLab CI/CD variables.
 
 Official references:
@@ -196,3 +201,9 @@ read_lab_creds:
 | Empty secret | Field name mismatch; confirm with `vault kv get` |
 | `secrets:vault` ignored or job errors on CE | Expected — use §4 CLI pattern |
 | Secrets visible in logs on CE | No auto-mask; scrub scripts, use files, disable debug tracing |
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->

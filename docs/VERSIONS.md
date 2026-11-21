@@ -1,5 +1,10 @@
 # Software versions policy
 
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **2. Build**  
+> ← [Workplan](WORKPLAN.md) · [Install](INSTALL.md) →
+<!-- doc-nav:end -->
+
 This repository assumes **the latest stable release** of each package unless a note says otherwise.
 
 | Package | Policy | Current latest (as of 2026-11-21) |
@@ -33,3 +38,9 @@ When bumping docs, re-check:
 - https://pypi.org/project/hvac/
 - https://github.com/netclaw-dev/netclaw/releases (Docker harness)
 - https://github.com/automateyournetwork/netclaw/releases (network agent)
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->

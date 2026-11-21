@@ -1,5 +1,10 @@
 # Security controls
 
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **1. Design**  
+> ← [Architecture](ARCHITECTURE.md) · [Workplan](WORKPLAN.md) →
+<!-- doc-nav:end -->
+
 ## Principles
 
 ```mermaid
@@ -122,3 +127,9 @@ Retain audit logs per your org policy (export off-box).
 3. Review audit log for blast radius.
 4. Rotate NetBox token if exposed.
 5. Treat chat transcripts that echoed secrets as compromised artifacts.
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->

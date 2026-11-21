@@ -1,5 +1,10 @@
 # NetClaw + HashiCorp Vault MCP
 
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **4. Agent**  
+> ← [NetBox](NETBOX.md) · [Models](MODELS.md) →
+<!-- doc-nav:end -->
+
 NetClaw integrates with the official Hashicorp **vault-mcp-server** so the agent can retrieve credentials and certificates without embedding secrets in skills or chat.
 
 For **which LLM to use** (Claude vs OpenAI vs local), see [MODELS.md](MODELS.md).  
@@ -161,3 +166,9 @@ NetClaw `.env.example` includes `NETCLAW_USERNAME` / `NETCLAW_PASSWORD` for quic
 1. Keep lab `.env` only on disposable labs.
 2. Point skills/testbeds at Vault-backed injection.
 3. Remove static passwords from host env once Phase 5 acceptance passes ([WORKPLAN.md](WORKPLAN.md)).
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->

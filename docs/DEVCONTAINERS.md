@@ -1,5 +1,10 @@
 # VS Code Dev Containers → HashiCorp Vault
 
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **3. Integrate**  
+> ← [Ansible](ANSIBLE.md) · [NetBox](NETBOX.md) →
+<!-- doc-nav:end -->
+
 Transition guide for local and GitLab-adjacent workflows where Dev Containers today rely on committed `.env` files, bind-mounted secret files, or plaintext vars for Ansible, NetBox APIs, and device access.
 
 **Rule:** the image and git tree hold **tooling only**. Secrets enter the container at start time from Vault (or from a short-lived host env that came from Vault).
@@ -213,3 +218,9 @@ VAULT_ADDR=https://vault.example.local:8200
 - `VAULT_TOKEN` absent ⇒ playbook fails clearly (no silent plaintext fallback)
 - Vault audit shows the engineer’s identity (OIDC/entity) or lab AppRole — not a shared root token
 - Same Vault paths work from Dev Container and GitLab CI ([ANSIBLE.md](ANSIBLE.md))
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->

@@ -1,5 +1,10 @@
 # NetClaw model selection: Claude, OpenAI, or local?
 
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **4. Agent**  
+> ← [NetClaw](NETCLAW.md) · [Local LLM](LOCAL_LLM.md) →
+<!-- doc-nav:end -->
+
 NetClaw is **BYOM** (bring your own model). It works with Anthropic, OpenAI, Bedrock, Vertex, Ollama, and many other providers. Model choice still matters for multi-step, tool-heavy network troubleshooting.
 
 ## Recommendation (this stack)
@@ -148,3 +153,9 @@ Compaction:  Local small
 - API keys not in the GitLab repo
 - At least one successful lab troubleshoot with Vault-backed device access
 - Air-gap or sovereignty requirements explicitly mapped to local vs cloud Main
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->

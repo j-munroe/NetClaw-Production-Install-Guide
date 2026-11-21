@@ -2,7 +2,7 @@
 
 Canonical design: **Strategy A** — `network/{env}/{site}/{device}/credentials` on KV mount `secret/`.
 
-Full guidance: [`../../docs/PATH_LAYOUT.md`](../../docs/PATH_LAYOUT.md)
+Full guidance: [`../../docs/PATH_LAYOUT.md`](../../docs/PATH_LAYOUT.md) · **Hub:** [../../docs/README.md](../../docs/README.md)
 
 ## Tree (logical)
 

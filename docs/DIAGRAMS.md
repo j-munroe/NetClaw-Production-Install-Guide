@@ -1,20 +1,34 @@
 # Diagram index
 
-Mermaid diagrams (render on GitHub) live in the guides below. Use this page as a map.
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **5. Reference**  
+> ← [SSH CA](SSH_CA.md)
+<!-- doc-nav:end -->
 
-| Topic | Diagram | Doc |
-|-------|---------|-----|
-| Whole stack | System overview | [README.md](../README.md) |
-| Trust & flows | Architecture, CI, NetClaw, Dev Container | [ARCHITECTURE.md](ARCHITECTURE.md) |
-| Delivery phases | Workplan sequence | [WORKPLAN.md](WORKPLAN.md) |
-| KV layout | Strategy A tree | [PATH_LAYOUT.md](PATH_LAYOUT.md) |
-| GitLab CE | JWT → Vault CLI | [GITLAB.md](GITLAB.md) |
-| Ansible | Lookup path | [ANSIBLE.md](ANSIBLE.md) |
-| Dev Containers | Host → container secrets | [DEVCONTAINERS.md](DEVCONTAINERS.md) |
-| NetBox | Device → Vault path | [NETBOX.md](NETBOX.md) |
-| NetClaw | Agent + Vault MCP | [NETCLAW.md](NETCLAW.md) |
-| Models | Main / Fallback / Compaction | [MODELS.md](MODELS.md) |
-| Local LLM | Ollama + NetClaw | [LOCAL_LLM.md](LOCAL_LLM.md) |
-| SSH CA | ClearPass vs Vault; zero-touch seed | [SSH_CA.md](SSH_CA.md) |
-| Security | Fail-closed zones | [SECURITY.md](SECURITY.md) |
-| Install | Bootstrap phases | [INSTALL.md](INSTALL.md) |
+Mermaid diagrams render on GitHub. Each guide embeds diagrams in context; this page is the map.
+
+**Reading path:** [Documentation home](README.md)
+
+| Step | Topic | Primary diagram(s) | Doc |
+|------|--------|-------------------|-----|
+| Landing | Whole stack | System overview | [../README.md](../README.md) |
+| 1 Design | Trust & flows | Zones, sequences | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| 1 Design | Fail closed | Decision flow | [SECURITY.md](SECURITY.md) |
+| 1 Design | Delivery order | Phase flowchart | [WORKPLAN.md](WORKPLAN.md) |
+| 2 Build | Version policy | Snapshot table | [VERSIONS.md](VERSIONS.md) |
+| 2 Build | Install steps | Phase LR flow | [INSTALL.md](INSTALL.md) |
+| 2 Build | KV taxonomy | Strategy A tree | [PATH_LAYOUT.md](PATH_LAYOUT.md) |
+| 3 Integrate | GitLab CE vs Premium | JWT paths | [GITLAB.md](GITLAB.md) |
+| 3 Integrate | Ansible lookups | Auth → modules | [ANSIBLE.md](ANSIBLE.md) |
+| 3 Integrate | Dev Containers | Host → container | [DEVCONTAINERS.md](DEVCONTAINERS.md) |
+| 3 Integrate | NetBox resolve | Sequence | [NETBOX.md](NETBOX.md) |
+| 4 Agent | NetClaw + Vault | Inject-only flow | [NETCLAW.md](NETCLAW.md) |
+| 4 Agent | Model roles | Main / Fallback / Compaction | [MODELS.md](MODELS.md) |
+| 4 Agent | Local LLM | Ollama hybrid | [LOCAL_LLM.md](LOCAL_LLM.md) |
+| 4 Agent | SSH CA / ClearPass / zero-touch | Sequences + flowcharts | [SSH_CA.md](SSH_CA.md) |
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->

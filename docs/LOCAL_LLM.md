@@ -1,5 +1,10 @@
 # Local LLM setup for NetClaw
 
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **4. Agent**  
+> ← [Models](MODELS.md) · [SSH CA](SSH_CA.md) →
+<!-- doc-nav:end -->
+
 Install and wire a **self-hosted** model so NetClaw can run air-gapped, keep show-command output on-prem, or use a cheap local model for Fallback/Compaction while Claude stays Main ([MODELS.md](MODELS.md)).
 
 ## Best recommended local stack
@@ -318,3 +323,9 @@ netclaw model set main llama-local <id-from-discover> --context-window 32768
 - Documented Ollama host + model tags for lab and (if used) prod air-gap
 - NetClaw Main resolves to the intended local or hybrid definition after daemon restart
 - Team runbook includes GPU sizing and which model to use when VRAM is short (`14b` vs `30b`)
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->

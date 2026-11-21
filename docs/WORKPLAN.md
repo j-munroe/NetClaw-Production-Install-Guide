@@ -1,8 +1,15 @@
 # Workplan: HashiCorp Vault for NetClaw + GitLab + NetBox
 
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **1. Design**  
+> ← [Security](SECURITY.md) · [Versions](VERSIONS.md) →
+<!-- doc-nav:end -->
+
 ## Goal
 
 Replace static GitLab CI variables, Ansible Vault files, Dev Container `.env` secrets, and other ad-hoc credential stores with **HashiCorp Vault** as the single secrets system of record for network troubleshooting automation and NetClaw agents.
+
+This workplan is the **delivery checklist**. For concepts first, read [ARCHITECTURE](ARCHITECTURE.md) and [SECURITY](SECURITY.md). For the full doc map, see [Documentation home](README.md).
 
 ## Current state (baseline)
 
@@ -25,21 +32,6 @@ flowchart TB
   NB[Orb / NetBox] --> V
   V --> Dev[Devices / APIs]
   NB -.->|paths only| Dev
-```
-
-```
-                 ┌─────────────────┐
-                 │  HashiCorp Vault │
-                 │  (secrets SoT)   │
-                 └────────┬────────┘
-      ┌───────────┬───────┼───────┬───────────┐
-      │           │       │       │           │
- GitLab JWT  Ansible   Dev Cont. NetClaw   Orb/NetBox
- (CI jobs)   lookups   remoteEnv AppRole   (discovery)
-      │           │       │       │           │
-      └───────────┴───────┼───────┴───────────┘
-                          ▼
-                   Devices / APIs
 ```
 
 **Rules**
@@ -319,3 +311,9 @@ Phases 3 / 3b / 4 can overlap after Phase 2. Do 3c once lab Vault paths exist so
 - 100% of NetClaw device access audited in Vault
 - Separate policies for troubleshoot vs change
 - Time-to-rotate NetBox API token &lt; 15 minutes (procedure only; no code deploy)
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->

@@ -1,5 +1,10 @@
 # Install & bootstrap: HashiCorp Vault
 
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **2. Build**  
+> ← [Versions](VERSIONS.md) · [Path layout](PATH_LAYOUT.md) →
+<!-- doc-nav:end -->
+
 This guide installs Vault for lab or first production footprint, then enables the engines used by GitLab, NetBox, and NetClaw.
 
 Replace every `CHANGE_ME` / example hostname before use.
@@ -384,11 +389,13 @@ curl -sS --cacert /path/to/ca.crt "$VAULT_ADDR/v1/sys/health"
 
 ## 10. Next steps
 
-1. [GITLAB.md](GITLAB.md) — wire CI JWT + `secrets:vault`
-2. [NETBOX.md](NETBOX.md) — token in Vault + device path refs
-3. [NETCLAW.md](NETCLAW.md) — Vault MCP registration
-4. [SSH_CA.md](SSH_CA.md) — CA mode ops, ClearPass coexistence, bastions
-5. Return to [WORKPLAN.md](WORKPLAN.md) Phase 6–7 for SSH rollout and ops
+Continue the reading path from [Documentation home](README.md):
+
+1. [PATH_LAYOUT.md](PATH_LAYOUT.md) — adopt Strategy A before writing more secrets
+2. [GITLAB.md](GITLAB.md) — CE: JWT + Vault CLI (Premium `secrets:vault` optional)
+3. [ANSIBLE.md](ANSIBLE.md) → [DEVCONTAINERS.md](DEVCONTAINERS.md) → [NETBOX.md](NETBOX.md)
+4. [NETCLAW.md](NETCLAW.md) → [MODELS.md](MODELS.md) → [LOCAL_LLM.md](LOCAL_LLM.md) → [SSH_CA.md](SSH_CA.md)
+5. [WORKPLAN.md](WORKPLAN.md) Phase 6–7 for SSH rollout and ops checklist
 
 ---
 
@@ -397,3 +404,9 @@ curl -sS --cacert /path/to/ca.crt "$VAULT_ADDR/v1/sys/health"
 - If Vault is sealed: unseal with threshold key shares from escrow
 - If Vault is down: automation must **fail closed** (no fallback to plaintext env files in prod)
 - Emergency device access: offline break-glass credentials in a physical/enterprise PAM process — not in Git
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->

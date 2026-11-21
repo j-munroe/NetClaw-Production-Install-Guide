@@ -1,5 +1,10 @@
 # Vault SSH CA mode and certificate operations
 
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **4. Agent**  
+> ← [Local LLM](LOCAL_LLM.md) · [Diagrams](DIAGRAMS.md) →
+<!-- doc-nav:end -->
+
 Deep dive for **INSTALL.md §8**. Covers Vault signed SSH certificates, how that differs from **HPE ClearPass Onboard** (X.509), and recommended CA roles in this stack.
 
 Upstream: [Signed SSH certificates](https://developer.hashicorp.com/vault/docs/secrets/ssh/signed-ssh-certificates)
@@ -426,7 +431,15 @@ flowchart TB
 
 ## See also
 
+- [Documentation home](README.md) — full reading path  
 - [INSTALL.md](INSTALL.md) §8 — bootstrap commands in the install flow  
 - [PATH_LAYOUT.md](PATH_LAYOUT.md) — `ssh/roles/…` beside KV paths  
 - [SECURITY.md](SECURITY.md) — TTLs and least privilege  
 - [WORKPLAN.md](WORKPLAN.md) Phase 6 — SSH modernization  
+- [DIAGRAMS.md](DIAGRAMS.md) — diagram map for this topic
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->

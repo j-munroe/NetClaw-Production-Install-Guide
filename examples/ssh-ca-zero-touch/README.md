@@ -1,6 +1,7 @@
 # Zero-touch Vault SSH CA trust seeding
 
-Companion to [`../../docs/SSH_CA.md`](../../docs/SSH_CA.md) — **best method for this stack:** NetBox → GitLab CE → Ansible role installs `TrustedUserCAKeys` (CA **public** key only). Optionally enroll host certs via AppRole later.
+Companion to [`../../docs/SSH_CA.md`](../../docs/SSH_CA.md) — **best method for this stack:** NetBox → GitLab CE → Ansible role installs `TrustedUserCAKeys` (CA **public** key only). Optionally enroll host certs via AppRole later.  
+**Hub:** [../../docs/README.md](../../docs/README.md) · [../README.md](../README.md)
 
 ## Layout
 

@@ -1,5 +1,12 @@
 # Architecture
 
+<!-- doc-nav:start -->
+> **Hub:** [Documentation home](README.md) · **1. Design**  
+> [Security](SECURITY.md) →
+<!-- doc-nav:end -->
+
+Trust zones and data flows for Vault as secrets SoT. Start the full reading path at [Documentation home](README.md).
+
 ## Trust boundaries
 
 | Zone | Components | Secrets access |
@@ -160,3 +167,9 @@ flowchart LR
   NB -->|inventory API no passwords| NC
   NB --> R
 ```
+
+<!-- doc-footer:start -->
+---
+
+**Hub:** [Documentation home](README.md) · **Reading path:** [Design](ARCHITECTURE.md) → [Build](INSTALL.md) → [Integrate](GITLAB.md) → [Agent](NETCLAW.md) → [Reference](DIAGRAMS.md)
+<!-- doc-footer:end -->
