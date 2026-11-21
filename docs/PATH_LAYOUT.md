@@ -66,6 +66,17 @@ secret/                          # KV v2 mount
     netbox/                      # fields: api_token, url
     gitlab/                      # rare helpers only — prefer JWT, not stored PATs
     observability/               # optional: Grafana, Splunk tokens
+    paloalto/strata-cloud-manager
+    arista/cvaas
+    velocloud/manager
+    cisco/epnm
+    zabbix/
+    observium/
+    aruba/central-classic
+    aruba/central-cnx
+    aruba/edgeconnect-gm
+    cloudflare/
+    efficientip/solidserver
   network/
     {env}/                       # stage | prod (optional: lab for isolated gear)
       {site}/                    # NetBox site slug: dc1, edge-yyc, …
@@ -79,6 +90,8 @@ secret/                          # KV v2 mount
   ci/                            # optional: pipeline-only secrets (signing, etc.)
     {project}/
 ```
+
+Controller wiring (MCP, NetBox tags, cutover): [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md).
 
 ### Concrete examples
 
