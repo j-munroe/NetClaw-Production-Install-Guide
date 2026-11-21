@@ -2,10 +2,12 @@
 
 <!-- doc-nav:start -->
 > **Hub:** [Documentation home](README.md) · **2. Build**  
-> ← [Versions](VERSIONS.md) · [Path layout](PATH_LAYOUT.md) →
+> ← [Stack install](STACK_INSTALL.md) · [Path layout](PATH_LAYOUT.md) →
 <!-- doc-nav:end -->
 
-This guide builds a **production-grade** Vault cluster for GitLab CE, Ansible, NetBox, Dev Containers, and NetClaw. It assumes on-prem (or private cloud) infrastructure with real TLS, HA storage, auto-unseal, audit, and backup — not a single-node “dev server” or Docker `tls_disable` container.
+This guide builds a **production-grade** Vault cluster (one chapter of the full stack). For **NetClaw + every associated component** in install order, start with **[STACK_INSTALL.md](STACK_INSTALL.md)**.
+
+Vault assumes on-prem (or private cloud) infrastructure with real TLS, HA storage, auto-unseal, audit, and backup — not a single-node “dev server” or Docker `tls_disable` container.
 
 Replace every `CHANGE_ME` / example hostname before use. Pin package versions per [VERSIONS.md](VERSIONS.md).
 

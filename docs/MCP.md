@@ -11,6 +11,7 @@ Official intro: [modelcontextprotocol.io](https://modelcontextprotocol.io/docs/g
 
 This guide explains MCP in plain language, then how to **set up your first server** in this production Vault + DefenseClaw design.
 
+**Full stack install order:** [STACK_INSTALL.md](STACK_INSTALL.md) (NetClaw + MCP is §7).  
 Next deep dives: [NETCLAW.md](NETCLAW.md) (Vault MCP) · [DEFENSECLAW.md](DEFENSECLAW.md) (scan/guard) · [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md) (your platforms)
 
 ---

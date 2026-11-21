@@ -7,6 +7,7 @@
 
 NetClaw integrates with the official Hashicorp **vault-mcp-server** so the agent can retrieve credentials and certificates without embedding secrets in skills or chat.
 
+**Installing the whole production stack** (Vault → NetBox → GitLab → NetClaw → DefenseClaw → platforms): **[STACK_INSTALL.md](STACK_INSTALL.md)**.  
 New to MCP? Start with **[MCP.md](MCP.md)** (what it is and first-time setup).  
 For **DefenseClaw** (open-source scan + runtime guardrails + change gates), see [DEFENSECLAW.md](DEFENSECLAW.md).  
 For **which LLM to use** (Claude vs OpenAI vs local), see [MODELS.md](MODELS.md).  

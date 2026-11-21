@@ -1,8 +1,10 @@
 # Documentation home
 
-HashiCorp Vault as the **production** secrets system of record for **GitLab CE**, **Ansible**, **NetBox**, **Dev Containers**, and **NetClaw**.
+Production documentation for **NetClaw** and associated components — with **HashiCorp Vault** as the secrets system of record for **GitLab CE**, **Ansible**, **NetBox**, **Dev Containers**, **DefenseClaw**, MCP servers, and your network platforms.
 
 Root overview: [../README.md](../README.md)
+
+**Installing the whole stack?** Start here → **[STACK_INSTALL.md](STACK_INSTALL.md)**
 
 ---
 
@@ -21,9 +23,9 @@ flowchart LR
 | Step | Focus | Start with |
 |------|--------|------------|
 | **1. Design** | Trust boundaries, security, delivery, best practices | [ARCHITECTURE](ARCHITECTURE.md) → [SECURITY](SECURITY.md) → [WORKPLAN](WORKPLAN.md) → [BEST_PRACTICES](BEST_PRACTICES.md) |
-| **2. Build** | HA install, pinned versions, path layout | [VERSIONS](VERSIONS.md) → [INSTALL](INSTALL.md) → [PATH_LAYOUT](PATH_LAYOUT.md) |
+| **2. Build** | Full stack install → Vault detail → paths | [VERSIONS](VERSIONS.md) → [STACK_INSTALL](STACK_INSTALL.md) → [INSTALL](INSTALL.md) → [PATH_LAYOUT](PATH_LAYOUT.md) |
 | **3. Integrate** | CI, Ansible, Dev Containers, NetBox | [GITLAB](GITLAB.md) → [ANSIBLE](ANSIBLE.md) → [DEVCONTAINERS](DEVCONTAINERS.md) → [NETBOX](NETBOX.md) |
-| **4. Agent** | MCP basics → NetClaw → DefenseClaw → models → SSH CA → prod envs | [MCP](MCP.md) → [NETCLAW](NETCLAW.md) → [DEFENSECLAW](DEFENSECLAW.md) → [MODELS](MODELS.md) → [LOCAL_LLM](LOCAL_LLM.md) → [SSH_CA](SSH_CA.md) → [PRODUCTION_ENVIRONMENTS](PRODUCTION_ENVIRONMENTS.md) |
+| **4. Agent** | MCP → NetClaw → DefenseClaw → models → SSH CA → prod envs | [MCP](MCP.md) → [NETCLAW](NETCLAW.md) → [DEFENSECLAW](DEFENSECLAW.md) → [MODELS](MODELS.md) → [LOCAL_LLM](LOCAL_LLM.md) → [SSH_CA](SSH_CA.md) → [PRODUCTION_ENVIRONMENTS](PRODUCTION_ENVIRONMENTS.md) |
 | **5. Reference** | Diagrams, examples, policies, scripts | [DIAGRAMS](DIAGRAMS.md) · [../examples/](../examples/) · [../policies/](../policies/) · [../scripts/](../scripts/) |
 
 ---
@@ -35,15 +37,16 @@ flowchart LR
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Trust zones, data flows, NetBox vs Vault |
 | [SECURITY.md](SECURITY.md) | Fail closed, TTLs, HA/ops controls, rotation |
 | [WORKPLAN.md](WORKPLAN.md) | Phased production delivery + acceptance |
-| [BEST_PRACTICES.md](BEST_PRACTICES.md) | Best practices per topic (Vault → NetClaw stack) |
+| [BEST_PRACTICES.md](BEST_PRACTICES.md) | Best practices per topic (full stack) |
 
 ## 2. Build
 
 | Doc | What you get |
 |-----|----------------|
 | [VERSIONS.md](VERSIONS.md) | Pin-for-production version policy |
-| [INSTALL.md](INSTALL.md) | 3+ node Raft, TLS, auto-unseal, audit, backup |
-| [PATH_LAYOUT.md](PATH_LAYOUT.md) | KV Strategy A for `stage` / `prod` |
+| [STACK_INSTALL.md](STACK_INSTALL.md) | **Complete** NetClaw stack production install runbook |
+| [INSTALL.md](INSTALL.md) | Vault HA detail (Raft, TLS, auto-unseal, backup) |
+| [PATH_LAYOUT.md](PATH_LAYOUT.md) | KV Strategy A for `stage` / `prod` + controllers |
 
 ## 3. Integrate
 
@@ -64,14 +67,14 @@ flowchart LR
 | [MODELS.md](MODELS.md) | Claude vs OpenAI vs local |
 | [LOCAL_LLM.md](LOCAL_LLM.md) | Production-capable Ollama + Qwen3 |
 | [SSH_CA.md](SSH_CA.md) | SSH CA vs ClearPass; zero-touch seeding |
-| [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md) | Connect NetClaw to your controllers, NMS, DDI, XR |
+| [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md) | Controllers, NMS, DDI, ND SAN, XR, … |
 
 ## 5. Reference
 
 | Doc / folder | What you get |
 |--------------|----------------|
 | [DIAGRAMS.md](DIAGRAMS.md) | Index of Mermaid diagrams |
-| [../examples/](../examples/README.md) | CI, Ansible, Dev Container, SSH CA, LLM snippets |
+| [../examples/](../examples/README.md) | CI, Ansible, stack checklist, MCP, platforms |
 | [../policies/](../policies/README.md) | Stage + prod HCL examples |
 | [../scripts/](../scripts/README.md) | Non-production command references only |
 
@@ -79,6 +82,7 @@ flowchart LR
 
 ## Stack assumptions
 
+- **Full stack install runbook**: [STACK_INSTALL.md](STACK_INSTALL.md)
 - **Production Vault**: HA Raft, TLS, auto-unseal, audit, snapshots — [INSTALL.md](INSTALL.md)
 - **GitLab Community Edition** on-prem (JWT + Vault CLI, not `secrets:vault`)
 - **NetBox Community** as inventory SoT (paths, not passwords)
@@ -91,9 +95,8 @@ flowchart LR
 ## Suggested cutover sequence
 
 1. Read [ARCHITECTURE](ARCHITECTURE.md) + [SECURITY](SECURITY.md) + [BEST_PRACTICES](BEST_PRACTICES.md); sign off [WORKPLAN](WORKPLAN.md) Phase 0.
-2. Deploy HA Vault per [INSTALL](INSTALL.md); complete raft peer check + snapshot restore drill.
-3. Adopt [PATH_LAYOUT](PATH_LAYOUT.md) Strategy A; load `stage` secrets first, then `prod`.
-4. Wire separate GitLab JWT roles ([GITLAB](GITLAB.md)) and one playbook ([ANSIBLE](ANSIBLE.md)).
-5. Learn MCP ([MCP](MCP.md)); enable NetClaw AppRole + Vault MCP; wire DefenseClaw observe→action ([NETCLAW](NETCLAW.md), [DEFENSECLAW](DEFENSECLAW.md)).
-6. Promote prod paths after audit review; roll SSH CA + zero-touch bastion trust ([SSH_CA](SSH_CA.md)).
-7. Connect production platforms per [PRODUCTION_ENVIRONMENTS](PRODUCTION_ENVIRONMENTS.md) (CVaaS, Strata, Central, Cloudflare, XR, …).
+2. Follow **[STACK_INSTALL](STACK_INSTALL.md)** (Vault HA is step 2 inside that runbook).
+3. Adopt [PATH_LAYOUT](PATH_LAYOUT.md); load `stage` secrets first, then `prod`.
+4. Wire GitLab CE JWT + Ansible + NetBox per the stack runbook.
+5. NetClaw + MCP + DefenseClaw observe→action; SSH CA; day-1 platforms ([PRODUCTION_ENVIRONMENTS](PRODUCTION_ENVIRONMENTS.md)).
+6. Complete STACK_INSTALL §12 acceptance; then operate ([WORKPLAN](WORKPLAN.md) Phase 7).

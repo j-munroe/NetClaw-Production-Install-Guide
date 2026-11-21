@@ -60,7 +60,17 @@ Guide: [SECURITY.md](SECURITY.md)
 
 ---
 
-## 3. Vault platform (install & operate)
+## 3. Full stack install order
+
+Guide: [STACK_INSTALL.md](STACK_INSTALL.md)
+
+- Install in runbook order: Vault → paths/policies → NetBox → GitLab/Ansible → SSH CA → NetClaw/MCP → DefenseClaw → models → platforms → Dev Containers → validate.
+- Do not point NetClaw at production controllers before Vault HA, DefenseClaw soak, and stage smoke tests pass.
+- Use the printable checklist: [`../examples/stack-install/checklist.md`](../examples/stack-install/checklist.md).
+
+---
+
+## 4. Vault platform (install & operate)
 
 Guide: [INSTALL.md](INSTALL.md)
 
@@ -76,7 +86,7 @@ Guide: [INSTALL.md](INSTALL.md)
 
 ---
 
-## 4. Versions & change control
+## 5. Versions & change control
 
 Guide: [VERSIONS.md](VERSIONS.md)
 
@@ -87,7 +97,7 @@ Guide: [VERSIONS.md](VERSIONS.md)
 
 ---
 
-## 5. Path layout (KV)
+## 6. Path layout (KV)
 
 Guide: [PATH_LAYOUT.md](PATH_LAYOUT.md)
 
@@ -100,7 +110,7 @@ Guide: [PATH_LAYOUT.md](PATH_LAYOUT.md)
 
 ---
 
-## 6. GitLab CE + Runners
+## 7. GitLab CE + Runners
 
 Guide: [GITLAB.md](GITLAB.md)
 
@@ -114,7 +124,7 @@ Guide: [GITLAB.md](GITLAB.md)
 
 ---
 
-## 7. Ansible
+## 8. Ansible
 
 Guide: [ANSIBLE.md](ANSIBLE.md)
 
@@ -127,7 +137,7 @@ Guide: [ANSIBLE.md](ANSIBLE.md)
 
 ---
 
-## 8. Dev Containers
+## 9. Dev Containers
 
 Guide: [DEVCONTAINERS.md](DEVCONTAINERS.md)
 
@@ -138,7 +148,7 @@ Guide: [DEVCONTAINERS.md](DEVCONTAINERS.md)
 
 ---
 
-## 9. NetBox
+## 10. NetBox
 
 Guide: [NETBOX.md](NETBOX.md)
 
@@ -149,7 +159,7 @@ Guide: [NETBOX.md](NETBOX.md)
 
 ---
 
-## 10. MCP (Model Context Protocol)
+## 11. MCP (Model Context Protocol)
 
 Guide: [MCP.md](MCP.md)
 
@@ -160,7 +170,7 @@ Guide: [MCP.md](MCP.md)
 
 ---
 
-## 11. NetClaw + Vault MCP
+## 12. NetClaw + Vault MCP
 
 Guide: [NETCLAW.md](NETCLAW.md)
 
@@ -173,7 +183,7 @@ Guide: [NETCLAW.md](NETCLAW.md)
 
 ---
 
-## 12. DefenseClaw (+ optional OpenShell)
+## 13. DefenseClaw (+ optional OpenShell)
 
 Guide: [DEFENSECLAW.md](DEFENSECLAW.md)
 
@@ -189,7 +199,7 @@ Guide: [DEFENSECLAW.md](DEFENSECLAW.md)
 
 ---
 
-## 13. Models (Claude / OpenAI / local)
+## 14. Models (Claude / OpenAI / local)
 
 Guide: [MODELS.md](MODELS.md)
 
@@ -201,7 +211,7 @@ Guide: [MODELS.md](MODELS.md)
 
 ---
 
-## 14. Local LLM (Ollama)
+## 15. Local LLM (Ollama)
 
 Guide: [LOCAL_LLM.md](LOCAL_LLM.md)
 
@@ -213,7 +223,7 @@ Guide: [LOCAL_LLM.md](LOCAL_LLM.md)
 
 ---
 
-## 15. Production environments (controllers / NMS / XR)
+## 16. Production environments (controllers / NMS / XR)
 
 Guide: [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md)
 
@@ -226,7 +236,7 @@ Guide: [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md)
 
 ---
 
-## 16. SSH CA, ClearPass, zero-touch
+## 17. SSH CA, ClearPass, zero-touch
 
 Guide: [SSH_CA.md](SSH_CA.md) · [INSTALL.md](INSTALL.md) §8
 
@@ -243,7 +253,7 @@ Guide: [SSH_CA.md](SSH_CA.md) · [INSTALL.md](INSTALL.md) §8
 
 ---
 
-## 17. Policies & examples
+## 18. Policies & examples
 
 Guides: [../policies/README.md](../policies/README.md) · [../examples/README.md](../examples/README.md)
 
@@ -253,7 +263,7 @@ Guides: [../policies/README.md](../policies/README.md) · [../examples/README.md
 
 ---
 
-## 18. Operate & harden (ongoing)
+## 19. Operate & harden (ongoing)
 
 Guide: [WORKPLAN.md](WORKPLAN.md) Phase 7 · [SECURITY.md](SECURITY.md)
 
@@ -277,7 +287,8 @@ Success metrics: zero prod passwords in CI variables; zero committed `.env` devi
 | Trust / data flows | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Controls & IR | [SECURITY.md](SECURITY.md) |
 | Delivery phases | [WORKPLAN.md](WORKPLAN.md) |
-| HA install | [INSTALL.md](INSTALL.md) |
+| Full stack install | [STACK_INSTALL.md](STACK_INSTALL.md) |
+| Vault HA install | [INSTALL.md](INSTALL.md) |
 | Pins | [VERSIONS.md](VERSIONS.md) |
 | KV paths | [PATH_LAYOUT.md](PATH_LAYOUT.md) |
 | GitLab CE | [GITLAB.md](GITLAB.md) |

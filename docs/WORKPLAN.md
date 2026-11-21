@@ -1,4 +1,4 @@
-# Workplan: HashiCorp Vault for NetClaw + GitLab + NetBox
+# Workplan: NetClaw production stack (Vault + GitLab + NetBox + agent)
 
 <!-- doc-nav:start -->
 > **Hub:** [Documentation home](README.md) · **1. Design**  
@@ -9,7 +9,7 @@
 
 Replace static GitLab CI variables, Ansible Vault files, Dev Container `.env` secrets, and other ad-hoc credential stores with a **production-grade HashiCorp Vault cluster** as the single secrets system of record for network troubleshooting automation and NetClaw agents.
 
-This workplan is the **delivery checklist**. Concepts: [ARCHITECTURE](ARCHITECTURE.md), [SECURITY](SECURITY.md). Doc map: [Documentation home](README.md).
+This workplan is the **delivery checklist**. **Install runbook:** [STACK_INSTALL.md](STACK_INSTALL.md). Concepts: [ARCHITECTURE](ARCHITECTURE.md), [SECURITY](SECURITY.md). Doc map: [Documentation home](README.md).
 
 ## Current state (baseline)
 
@@ -84,7 +84,7 @@ flowchart TB
 - Audit receives a test read in SIEM
 - Successful snapshot restore drill recorded
 
-**Guide:** [INSTALL.md](INSTALL.md) §0–3, §9
+**Guide:** [STACK_INSTALL.md](STACK_INSTALL.md) §2 · [INSTALL.md](INSTALL.md) §0–3, §9
 
 ---
 
