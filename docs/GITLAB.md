@@ -94,7 +94,7 @@ variables:
 
 read_lab_creds:
   stage: troubleshoot
-  image: hashicorp/vault:1.19
+  image: hashicorp/vault:latest
   id_tokens:
     VAULT_ID_TOKEN:
       aud: https://vault.example.local

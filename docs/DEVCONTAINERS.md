@@ -78,7 +78,7 @@ Run Vault Agent with auto-auth; write a wrapped token or render env files into a
 ```json
 {
   "name": "network-automation",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:1": {}
   },

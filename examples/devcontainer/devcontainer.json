@@ -1,8 +1,6 @@
 {
   "name": "network-automation-vault",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
   "remoteUser": "vscode",
   "remoteEnv": {
     "VAULT_ADDR": "${localEnv:VAULT_ADDR}",

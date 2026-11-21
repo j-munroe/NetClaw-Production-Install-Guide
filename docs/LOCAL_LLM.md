@@ -170,7 +170,7 @@ Keep **Claude as Main**; use local for Fallback + Compaction:
 }
 ```
 
-Replace `ModelId` values with whatever your NetClaw/provider catalog lists for the Claude tier you licensed. Store API keys in NetClaw `secrets.json` / Vault — not in git ([NETCLAW.md](NETCLAW.md), [MODELS.md](MODELS.md)).
+Replace `ModelId` with the **latest** Claude model id your NetClaw/provider catalog lists for your license. Store API keys in NetClaw `secrets.json` / Vault — not in git ([NETCLAW.md](NETCLAW.md), [MODELS.md](MODELS.md), [VERSIONS.md](VERSIONS.md)).
 
 ### CLI-oriented setup (when available)
 
@@ -206,7 +206,7 @@ Example snippets: [`../examples/local-llm/`](../examples/local-llm/).
 
 ## 5. Docker Compose lab (Ollama + NetClaw)
 
-Sketch aligned with NetClaw’s Docker docs (pin image tags in prod):
+Sketch aligned with NetClaw’s Docker docs. Docs assume **latest stable** images ([VERSIONS.md](VERSIONS.md)); pin immutable tags in production after validation.
 
 ```yaml
 services:
@@ -218,7 +218,7 @@ services:
     # deploy GPU reservations here if using NVIDIA Container Toolkit
 
   netclaw:
-    image: ghcr.io/netclaw-dev/netclaw:0.28.2   # pin a real tag
+    image: ghcr.io/netclaw-dev/netclaw:latest
     restart: unless-stopped
     depends_on: [ollama]
     volumes:
@@ -236,6 +236,7 @@ volumes:
 ```
 
 ```bash
+docker compose pull
 docker compose up -d
 docker compose exec ollama ollama pull qwen3:30b
 docker compose exec ollama ollama pull qwen3:8b

@@ -12,6 +12,10 @@ Workplan and install setup for **HashiCorp Vault** as the secrets system of reco
 | **NetBox Community** | Inventory / source of truth (paths & metadata, not passwords) |
 | **NetClaw** | Agentic network engineer via Vault MCP |
 
+## Versions
+
+Docs and examples assume **latest stable** releases (Vault 2.x, Ollama, `community.hashi_vault`, etc.). See **[docs/VERSIONS.md](docs/VERSIONS.md)**. Pin tags in production after lab validation.
+
 ## Why Vault
 
 - Native GitLab `secrets:vault` + JWT/OIDC (no long-lived CI tokens)
@@ -35,6 +39,7 @@ Workplan and install setup for **HashiCorp Vault** as the secrets system of reco
 | [NETCLAW.md](docs/NETCLAW.md) | Vault MCP, policies, safe agent access |
 | [MODELS.md](docs/MODELS.md) | Claude vs OpenAI vs local LLMs for NetClaw |
 | [LOCAL_LLM.md](docs/LOCAL_LLM.md) | Install Ollama + recommended Qwen3 models for NetClaw |
+| [VERSIONS.md](docs/VERSIONS.md) | Latest-stable version policy and current release snapshot |
 | [SECURITY.md](docs/SECURITY.md) | Least privilege, audit, rotation |
 
 ## Quick start (lab)

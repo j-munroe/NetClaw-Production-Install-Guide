@@ -44,7 +44,8 @@ Replace static GitLab CI variables, Ansible Vault files, Dev Container `.env` se
 
 **Outcomes**
 
-- [ ] Choose Vault edition: **OSS** (start here) or Enterprise (namespaces, replication)
+- [ ] Choose Vault edition: **OSS/Community latest** (start here; currently 2.x) or Enterprise — [VERSIONS.md](VERSIONS.md)
+- [ ] Plan package versions as **latest stable** (Vault, Ollama, Ansible collection, runners); pin only after lab validation
 - [ ] Choose HA: single node (lab) vs Raft/Consul (prod)
 - [ ] Choose auth methods: **JWT** (GitLab), **AppRole** (NetClaw/Ansible controllers), **OIDC** (humans / Dev Containers)
 - [ ] Choose NetClaw **Main** LLM: Claude (recommended), OpenAI (if mandated), or local (air-gap) — see [MODELS.md](MODELS.md)

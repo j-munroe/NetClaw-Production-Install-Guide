@@ -51,19 +51,26 @@ secret/platform/ansible/controller                 # optional shared automation 
 On runners, controllers, and in Dev Containers:
 
 ```bash
-ansible-galaxy collection install community.hashi_vault
-pip install 'hvac>=1.2'   # required by the collection
+ansible-galaxy collection install community.hashi_vault   # latest
+pip install 'hvac'                                        # latest (PyPI)
 ```
 
-Pin versions in `requirements.yml` / `requirements.txt` for reproducibility.
+Prefer latest stable; record resolved versions in CI image builds. Floors that still allow current releases:
 
 Example `requirements.yml`:
 
 ```yaml
 collections:
   - name: community.hashi_vault
-    version: ">=6.0.0"
+    version: ">=7.1.0"
 ```
+
+```text
+# requirements.txt
+hvac>=2.4.0
+```
+
+See [VERSIONS.md](VERSIONS.md).
 
 ---
 

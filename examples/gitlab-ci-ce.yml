@@ -11,7 +11,7 @@ variables:
 
 lab_secret_smoke:
   stage: validate
-  image: hashicorp/vault:1.19
+  image: hashicorp/vault:latest   # pin e.g. :2.2.2 in production — docs/VERSIONS.md
   id_tokens:
     VAULT_ID_TOKEN:
       aud: https://vault.example.local

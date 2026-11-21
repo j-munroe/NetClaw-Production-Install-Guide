@@ -1,0 +1,2 @@
+# Latest hvac is assumed; floor matches docs/VERSIONS.md
+hvac>=2.4.0

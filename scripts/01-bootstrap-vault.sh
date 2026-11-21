@@ -5,7 +5,7 @@ set -euo pipefail
 
 NAME="${VAULT_CONTAINER_NAME:-vault-lab}"
 PORT="${VAULT_LAB_PORT:-8200}"
-IMAGE="${VAULT_IMAGE:-hashicorp/vault:1.18}"
+IMAGE="${VAULT_IMAGE:-hashicorp/vault:latest}"
 
 if docker ps -a --format '{{.Names}}' | grep -qx "$NAME"; then
   echo "Container $NAME already exists. Start with: docker start $NAME"

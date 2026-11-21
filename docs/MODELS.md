@@ -8,8 +8,8 @@ For on-prem GitLab, NetBox, Vault, Ansible, and production-leaning NetClaw use:
 
 | Role | Choice | Why |
 |------|--------|-----|
-| **Main** (troubleshooting, multi-MCP reasoning) | **Claude** (current Sonnet/Opus class) | NetClaw is built and demoed primarily on Claude; strongest fit for long, tool-heavy CCIE-style workflows |
-| **Alternate Main** | **OpenAI** (GPT-4o / strong reasoning tier) | Fully supported via BYOM; use when enterprise standards require OpenAI |
+| **Main** (troubleshooting, multi-MCP reasoning) | **Claude** (latest Sonnet/Opus class available to you) | NetClaw is built and demoed primarily on Claude; strongest fit for long, tool-heavy CCIE-style workflows |
+| **Alternate Main** | **OpenAI** (latest strong reasoning / GPT-class tier) | Fully supported via BYOM; use when enterprise standards require OpenAI |
 | **Local (Ollama / LM Studio / etc.)** | **Fallback, compaction, or air-gap lab** | Sovereignty and cost; weaker on complex multi-MCP runs unless you run a large model (~30B class) on serious GPU |
 
 **Default:** Claude as Main. Local for fallback/compaction (or air-gapped Main). OpenAI only if procurement/security already standardizes on it.

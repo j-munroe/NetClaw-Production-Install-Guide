@@ -8,7 +8,7 @@ Replace every `CHANGE_ME` / example hostname before use.
 
 ## 0. Prerequisites
 
-- Linux host (Ubuntu 22.04/24.04 or RHEL 8/9 recommended)
+- Linux host (**Ubuntu 24.04 LTS** recommended, or current RHEL) — see [VERSIONS.md](VERSIONS.md)
 - Outbound access to HashiCorp package repos **or** offline package mirror
 - DNS name, e.g. `vault.example.local`
 - TLS certificate + key (or lab self-signed for testing only)
@@ -33,8 +33,8 @@ echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
   | sudo tee /etc/apt/sources.list.d/hashicorp.list
 
 sudo apt-get update
-sudo apt-get install -y vault
-vault version
+sudo apt-get install -y vault   # latest stable from HashiCorp apt
+vault version                   # expect current 2.x line unless you pin
 ```
 
 **Container alternative (lab):**
@@ -46,10 +46,11 @@ docker run -d --name vault \
   -v vault-data:/vault/file \
   -e 'VAULT_LOCAL_CONFIG={"storage":{"file":{"path":"/vault/file"}},"listener":{"tcp":{"address":"0.0.0.0:8200","tls_disable":1}},"ui":true}' \
   --cap-add=IPC_LOCK \
-  hashicorp/vault:1.18 server
+  hashicorp/vault:latest server
 ```
 
-> Lab-only: `tls_disable:1` is unacceptable for production. Use TLS as shown below.
+> Lab-only: `tls_disable:1` is unacceptable for production. Use TLS as shown below.  
+> Images track **latest stable Vault** ([VERSIONS.md](VERSIONS.md)); pin a version tag in production.
 
 ---
 
