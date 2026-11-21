@@ -140,7 +140,7 @@ vars:
 ```yaml
 # group_vars/all/vault_paths.yml  (plaintext — paths only)
 vault_mount: secret
-device_cred_path: "network/lab/dc1/{{ inventory_hostname }}/credentials"
+device_cred_path: "network/stage/dc1/{{ inventory_hostname }}/credentials"
 netbox_secret_path: "platform/netbox"
 ```
 
@@ -178,7 +178,7 @@ Legacy-style path lookup (KV v2 URL form):
 
 ```yaml
 # secret=mount/data/path  field on query string
-password: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=secret/data/network/lab/dc1/lab-rtr-01/credentials:password') }}"
+password: "{{ lookup('community.hashi_vault.hashi_vault', 'secret=secret/data/network/stage/dc1/rtr-01/credentials:password') }}"
 ```
 
 Prefer `vault_kv2_get` for clarity with KV v2.
@@ -215,7 +215,7 @@ GitLab writes temp files; playbook reads env/file vars — no Vault plugin requi
 ```yaml
 secrets:
   ANSIBLE_PASSWORD:
-    vault: network/lab/dc1/lab-rtr-01/credentials/password@secret
+    vault: network/stage/dc1/rtr-01/credentials/password@secret
     file: true
     token: $VAULT_ID_TOKEN
 script:
@@ -234,8 +234,8 @@ See also [`../examples/ansible/`](../examples/ansible/).
 2. **Write** equivalent secrets to HashiCorp Vault; verify with `vault kv get`.
 3. **Add** `community.hashi_vault` to collection requirements; update CI image/devcontainer.
 4. **Introduce** path vars (`vault_paths.yml`) alongside old `vault.yml`.
-5. **Switch** one playbook (lab inventory only) to lookups; keep `no_log: true` on credential-sensitive tasks.
-6. **Run** lab job from GitLab + once from Dev Container.
+5. **Switch** one stage playbook to lookups; keep `no_log: true` on credential-sensitive tasks.
+6. **Run** stage job from GitLab + once from Dev Container; then promote to prod inventory/role.
 7. **Remove** Ansible Vault file and CI password variables after sign-off.
 8. **Repeat** for stage/prod with stricter JWT roles / policies.
 
@@ -256,7 +256,7 @@ Remove the `default(...)` once Vault is mandatory.
 - [ ] `no_log: true` on tasks that touch passwords / enable / tokens
 - [ ] Disable or restrict `ANSIBLE_DEBUG` / verbose (`-vvv`) in prod pipelines
 - [ ] Do not use `delegate_to: localhost` debug of secret vars
-- [ ] Separate Vault policies: lab CI vs prod CI vs human AppRole
+- [ ] Separate Vault policies: stage CI vs prod CI vs human OIDC
 - [ ] Prefer SSH certs/OTP from Vault SSH engine over static `ansible_ssh_pass` when devices allow ([INSTALL.md](INSTALL.md) §8)
 - [ ] Inventory and NetBox hold **paths**, not passwords ([NETBOX.md](NETBOX.md))
 
@@ -264,7 +264,7 @@ Remove the `default(...)` once Vault is mandatory.
 
 ## 8. Acceptance criteria
 
-- Lab playbook succeeds with **no** Ansible Vault password and **no** device password in GitLab variables
+- Stage (then prod) playbook succeeds with **no** Ansible Vault password and **no** device password in GitLab variables
 - Vault audit shows reads from the CI JWT / AppRole identity
 - `git grep`-style review finds no plaintext prod passwords in the repo
 - Same playbook runs in GitLab CI and in a Dev Container using Vault ([DEVCONTAINERS.md](DEVCONTAINERS.md))

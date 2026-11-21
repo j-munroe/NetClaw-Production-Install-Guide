@@ -13,11 +13,11 @@ Related: [INSTALL.md](INSTALL.md) · [SECURITY.md](SECURITY.md) · [NETBOX.md](N
 
 ## Design goals
 
-1. **Policy-friendly** — one or two path globs can grant lab read without prod.
+1. **Policy-friendly** — one or two path globs can grant stage read without prod.
 2. **Inventory-aligned** — paths map cleanly from NetBox (site, device, env).
 3. **Consumer-clear** — GitLab CI, Ansible, NetClaw, and humans resolve the same path.
 4. **Rotation-safe** — changing a password updates one object; callers keep the path.
-5. **Audit-readable** — logs show *what* was accessed (`…/prod/…` vs `…/lab/…`).
+5. **Audit-readable** — logs show *what* was accessed (`…/prod/…` vs `…/stage/…`).
 
 Secrets live in Vault. NetBox holds **inventory + path references**, not passwords.
 
@@ -28,16 +28,16 @@ Secrets live in Vault. NetBox holds **inventory + path references**, not passwor
 | Layer | Example | Controls |
 |-------|---------|----------|
 | **Mount** (secrets engine) | `secret/` (KV v2), `ssh/`, `pki/` | Engine type, default lease, major blast radius |
-| **Path inside mount** | `network/lab/dc1/rtr-01/credentials` | Fine-grained ACL via policies |
+| **Path inside mount** | `network/stage/dc1/rtr-01/credentials` | Fine-grained ACL via policies |
 | **Fields** inside a secret | `username`, `password`, `enable_secret` | What callers read |
 
 **Recommendation for this stack**
 
 | Mount | Engine | Holds |
 |-------|--------|--------|
-| `secret/` | KV v2 | Device static creds, platform API tokens, shared lab users |
-| `ssh/` | SSH | Roles for OTP / signed certs (not long-lived passwords) |
-| `pki/` (optional) | PKI | Device/client certs (gNMI, mTLS) |
+| `secret/` | KV v2 | Device static creds, platform API tokens (prefer SSH CA in prod) |
+| `ssh/` | SSH CA | Roles for signed certs (not long-lived passwords) |
+| `pki/` (optional) | PKI | Only if ClearPass/enterprise PKI is not the X.509 path |
 
 Prefer **one KV mount** (`secret/`) with a deep path taxonomy over many mounts per team (harder to operate) unless you need hard isolation (e.g. separate prod cluster later).
 
@@ -53,7 +53,7 @@ flowchart TB
   S --> C[ci/ optional]
   P --> NB[netbox]
   P --> GL[gitlab rare]
-  N --> L[lab / stage / prod]
+  N --> L[stage / prod]
   L --> Site[site e.g. dc1]
   L --> SharedEnv[shared/]
   Site --> Dev[device/credentials]
@@ -67,14 +67,14 @@ secret/                          # KV v2 mount
     gitlab/                      # rare helpers only — prefer JWT, not stored PATs
     observability/               # optional: Grafana, Splunk tokens
   network/
-    {env}/                       # lab | stage | prod
+    {env}/                       # stage | prod (optional: lab for isolated gear)
       {site}/                    # NetBox site slug: dc1, edge-yyc, …
         {device}/                # NetBox device name / hostname
           credentials            # fields: username, password, enable_secret, …
         shared/                  # optional site-wide jump / RO user
           read-only
       shared/                    # optional env-wide automation identity
-        netclaw                  # fields: username, password
+        netclaw                  # prefer SSH CA over shared passwords in prod
         ansible
   ci/                            # optional: pipeline-only secrets (signing, etc.)
     {project}/
@@ -87,13 +87,12 @@ secret/                          # KV v2 mount
 vault kv put secret/platform/netbox \
   api_token="nbt_…" url="https://netbox.example.local"
 
-# Per-device
-vault kv put secret/network/lab/dc1/lab-rtr-01/credentials \
+# Per-device (stage first, then prod under change control)
+vault kv put secret/network/stage/dc1/rtr-01/credentials \
   username="netops" password="…" enable_secret="…"
 
-# Env-wide agent identity (lab only — avoid shared prod passwords if possible)
-vault kv put secret/network/lab/shared/netclaw \
-  username="netclaw" password="…"
+vault kv put secret/network/prod/dc1/rtr-01/credentials \
+  username="netops" password="…" enable_secret="…"
 ```
 
 ### Logical path consumers use
@@ -102,8 +101,8 @@ Callers usually omit the KV v2 `data/` segment; Vault CLI/`vault kv` and many li
 
 | Human / NetBox `vault_path` | Policy / ACL path (KV v2) |
 |-----------------------------|---------------------------|
-| `network/lab/dc1/lab-rtr-01/credentials` | `secret/data/network/lab/dc1/lab-rtr-01/credentials` |
-| list under lab | `secret/metadata/network/lab/*` |
+| `network/stage/dc1/rtr-01/credentials` | `secret/data/network/stage/dc1/rtr-01/credentials` |
+| list under stage | `secret/metadata/network/stage/*` |
 
 Always grant **both** `secret/data/…` and `secret/metadata/…` when listing or using metadata.
 
@@ -120,7 +119,7 @@ network/{env}/{site}/{device}/credentials
 | Pros | Cons |
 |------|------|
 | Matches NetBox site/device | Deep trees |
-| Easy `lab/*` vs `prod/*` policies | Renaming sites/devices needs path updates or aliases |
+| Easy `stage/*` vs `prod/*` policies | Renaming sites/devices needs path updates or aliases |
 | Clear audit | — |
 
 **Best default** for network ops + NetClaw.
@@ -185,18 +184,18 @@ OK as an *alias* field (`vault_path_id`) later; keep human paths as primary.
 ```mermaid
 flowchart TD
   A{Mount-level prod isolation required?}
-  A -->|Yes| C[Strategy C: secret-lab + secret-prod]
+  A -->|Yes| C[Strategy C: secret-stage + secret-prod mounts]
   A -->|No| B{Multi-BU separate Vault admins?}
   B -->|Yes| D[Strategy D: bu/env/site/device]
   B -->|No| E[Strategy A: env/site/device]
   E --> F{Mostly shared role passwords today?}
-  F -->|Yes| G[Lab: Strategy B temporary<br/>Prod target: A + SSH CA]
+  F -->|Yes| G[Migrate: B temporary then A + SSH CA]
   F -->|No| H[Use Strategy A]
 ```
 
 ```
 Need mount-level prod isolation for compliance?
-  YES → Strategy C (secret-lab + secret-prod)
+  YES → Strategy C (separate mounts)
   NO  → Continue
 
 Multiple business units with separate Vault admins?
@@ -204,7 +203,7 @@ Multiple business units with separate Vault admins?
   NO  → Strategy A (env/site/device)
 
 Mostly shared role passwords today?
-  Migrate with B in lab, target A (+ SSH engine) for prod
+  Migrate with B temporarily on stage, target A (+ SSH CA) for prod
 ```
 
 **This repository’s policies and examples assume Strategy A** on a single `secret/` mount.
@@ -242,8 +241,8 @@ Splitting `…/credentials/password` as separate secrets is rarely worth it; Git
 | Pattern | When | Path sketch |
 |---------|------|-------------|
 | Per-device user/pass | Best static model until SSH CA | `network/{env}/{site}/{device}/credentials` |
-| Shared automation user | Lab / break-glass only | `network/{env}/shared/ansible` |
-| NetClaw identity | Lab agent; tighten for prod | `network/{env}/shared/netclaw` |
+| Shared automation user | Break-glass / temporary only | `network/{env}/shared/ansible` |
+| NetClaw identity | Prefer SSH CA; KV only if required | `network/{env}/shared/netclaw` |
 | SSH OTP/cert role | Preferred for agents | `ssh/roles/netclaw-troubleshoot` (not under `secret/`) |
 
 **Prod guidance:** move NetClaw/Ansible toward **SSH secrets engine** roles; keep KV for platforms and residual static device secrets.
@@ -256,9 +255,9 @@ Store a custom field on the device (or role):
 
 | Field | Example |
 |-------|---------|
-| `vault_path` | `network/lab/dc1/lab-rtr-01/credentials` |
+| `vault_path` | `network/stage/dc1/rtr-01/credentials` |
 | `vault_ssh_role` | `netclaw-troubleshoot` |
-| `credential_env` | `lab` |
+| `credential_env` | `stage` |
 
 Derivation rule if you skip the custom field:
 
@@ -274,13 +273,13 @@ See [NETBOX.md](NETBOX.md) and [`../examples/netbox-custom-fields.md`](../exampl
 
 ## Aligning paths with policies
 
-KV v2 policy sketch for lab-only automation:
+KV v2 policy sketch for stage automation:
 
 ```hcl
-path "secret/data/network/lab/*" {
+path "secret/data/network/stage/*" {
   capabilities = ["read"]
 }
-path "secret/metadata/network/lab/*" {
+path "secret/metadata/network/stage/*" {
   capabilities = ["list", "read"]
 }
 path "secret/data/platform/netbox" {
@@ -288,22 +287,22 @@ path "secret/data/platform/netbox" {
 }
 ```
 
-Prod CI role: swap `lab` → `prod` (separate role — never the same JWT role).
+Prod CI role: use `gitlab-ci-prod` with `network/prod/*` (separate JWT role — never the same role as stage).
 
 | Identity | Typical glob |
 |----------|----------------|
-| GitLab lab JWT | `secret/data/network/lab/*` |
+| GitLab stage JWT | `secret/data/network/stage/*` |
 | GitLab prod JWT | `secret/data/network/prod/*` |
-| NetClaw read | `network/lab/*` + platform tokens |
-| NetClaw change | same + write on lab (or separate prod-change) |
-| Human OIDC (ops) | broader read; write via break-glass |
+| NetClaw read | `network/stage/*` + platform tokens (prod gated) |
+| NetClaw change | approval-gated; separate role |
+| Human OIDC (ops) | stage read; prod via break-glass / separate role |
 
 Existing files: [`../policies/`](../policies/).
 
-**Glob tip:** `network/lab/*` does **not** match only one path segment in Vault ACL the way some systems do — Vault’s `*` matches within a segment; use `+` for any single segment and `*` for any depth depending on version/docs. Prefer explicit prefixes:
+**Glob tip:** Prefer explicit env prefixes and test denies with a non-root token before cutover:
 
-- `secret/data/network/lab/*` — common pattern used in this repo’s policies  
-- Test with a non-root token before relying on production denies
+- `secret/data/network/stage/*` / `secret/data/network/prod/*`  
+- Never attach both to the same CI JWT role
 
 ---
 
@@ -369,12 +368,12 @@ KV still holds:
 secret/platform/netbox                         # api_token, url
 
 # Devices (Strategy A)
-secret/network/lab/dc1/lab-rtr-01/credentials
+secret/network/stage/dc1/rtr-01/credentials
 secret/network/prod/dc1/core-sw-01/credentials
 
-# Shared lab identities
-secret/network/lab/shared/netclaw
-secret/network/lab/shared/ansible
+# Shared identities (prefer SSH CA in prod)
+secret/network/stage/shared/netclaw
+secret/network/stage/shared/ansible
 
 # SSH engine (not KV)
 ssh/roles/netclaw-troubleshoot
@@ -388,12 +387,12 @@ Seed samples: [`../scripts/03-write-sample-secrets.sh`](../scripts/03-write-samp
 ## Acceptance checklist
 
 - [ ] Written standard: Strategy A (or C/D if chosen) documented for the team
-- [ ] `lab` / `stage` / `prod` segments enforced in policies (separate JWT/AppRoles)
+- [ ] `stage` / `prod` segments enforced in policies (separate JWT/AppRoles)
 - [ ] NetBox `vault_path` (or documented derivation) matches Vault
 - [ ] Field names standardized (`username` / `password` / `enable_secret`)
 - [ ] Platform tokens under `secret/platform/…`, not under device trees
 - [ ] SSH short-lived access planned under `ssh/roles/…`
-- [ ] No prod secrets readable by lab CI or default NetClaw read role
+- [ ] No prod secrets readable by stage CI or default NetClaw read role
 
 <!-- doc-footer:start -->
 ---

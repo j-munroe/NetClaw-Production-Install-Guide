@@ -5,6 +5,8 @@
 > ← [Architecture](ARCHITECTURE.md) · [Workplan](WORKPLAN.md) →
 <!-- doc-nav:end -->
 
+Production controls for Vault as secrets SoT. Pair with [INSTALL.md](INSTALL.md) (HA, TLS, auto-unseal) and [PATH_LAYOUT.md](PATH_LAYOUT.md).
+
 ## Principles
 
 ```mermaid
@@ -17,32 +19,47 @@ flowchart TB
   TTL --> Audit[Audit log]
 ```
 
-1. **Fail closed** — if Vault is unavailable, do not fall back to plaintext credential files in production.
-2. **Least privilege** — separate policies for CI lab, CI prod, NetClaw read, NetClaw change, NetBox agent.
-3. **Short TTL** — tokens hours or less; SSH certs/OTP minutes.
+1. **Fail closed** — if Vault is unavailable, do not fall back to plaintext credential files.
+2. **Least privilege** — separate policies for CI stage, CI prod, NetClaw read, NetClaw change, NetBox agent.
+3. **Short TTL** — tokens hours or less; SSH certs minutes.
 4. **No secret in git** — only paths, role names, and non-secret URLs.
-5. **Audit everything** — file/socket audit device always on.
+5. **Audit everything** — file/socket audit always on; ship off-box to SIEM.
+6. **HA + auto-unseal** — production cluster must survive node loss and reboot without human Shamir unseal for day-2.
+
+---
+
+## Platform hardening
+
+| Control | Production expectation |
+|---------|------------------------|
+| Cluster | 3+ Raft voters behind TLS VIP |
+| Listener | TLS from enterprise/internal CA; clients use `VAULT_CACERT` |
+| Unseal | Auto-unseal (KMS / HSM / Transit); recovery keys in multi-party escrow |
+| Root token | Bootstrap only; revoke after admin identity exists |
+| Snapshots | Scheduled Raft snapshots; restore drill before cutover |
+| Telemetry | Prometheus / metrics + seal and peer alerts |
+| UI | Optional; restrict to admin networks if enabled |
+
+Never run `-dev`, `tls_disable`, or `VAULT_SKIP_VERIFY` with real secrets.
 
 ---
 
 ## Path layout
 
-Prefer `network/{env}/{site}/{device}/credentials` so policies can deny `prod/` independently of `lab/`. Full strategies: [PATH_LAYOUT.md](PATH_LAYOUT.md).
+Prefer `network/{env}/{site}/{device}/credentials` so policies deny `prod/` independently of `stage/`. Full strategies: [PATH_LAYOUT.md](PATH_LAYOUT.md).
 
 ## KV v2 policy paths
 
-For KV v2, grant both data and metadata:
-
 ```hcl
-path "secret/data/network/lab/*" {
+path "secret/data/network/stage/*" {
   capabilities = ["read"]
 }
-path "secret/metadata/network/lab/*" {
+path "secret/metadata/network/stage/*" {
   capabilities = ["list", "read"]
 }
 ```
 
-Writes require `create` / `update` on `secret/data/...` and should be rare for agents.
+Prod CI uses a **separate** policy (`gitlab-ci-prod`) bound only to protected-branch JWT roles. Writes require `create` / `update` and should be rare for agents.
 
 ---
 
@@ -52,45 +69,46 @@ Writes require `create` / `update` on `secret/data/...` and should be rare for a
 |------------|-----|
 | GitLab JWT Vault token | 15m |
 | NetClaw AppRole token | 1h (max 4h) |
-| AppRole secret-id | 24h–7d (rotate often) |
-| SSH OTP/cert (Vault SSH CA) | 15–30m |
+| AppRole secret-id | ≤ 7d (rotate on calendar) |
+| SSH cert (Vault SSH CA) | 15–30m |
 | Human admin token | 1h + MFA |
 
 ---
 
-## Root token & unseal keys
+## Root token, recovery keys, auto-unseal
 
-- After bootstrap: create admin identity, **revoke root** or print-once offline escrow.
-- Unseal key shares: split custody (3 of 5); never in Git, NetBox, or Vault itself.
-- Document break-glass in an offline runbook.
+- After bootstrap: create admin identity (OIDC + MFA preferred), **revoke root**.
+- Recovery keys: split custody; never in Git, NetBox, or the Vault cluster itself.
+- Auto-unseal credentials (KMS roles, Transit token): treat as crown jewels; rotate per platform policy.
+- Document break-glass seal/recovery offline.
 
 ---
 
 ## GitLab guardrails
 
-- Bound JWT claims on `project_path` and `ref_protected`
-- Production role ≠ lab role
-- Protected variables + protected runners for prod
-- MR pipelines: inventory read only, no `prod/` secrets
-- On **Community Edition**, use JWT + Vault CLI (no `secrets:vault`); do not rely on auto-masking — keep secrets out of logs ([GITLAB.md](GITLAB.md))
+- Bound JWT claims on `project_path`, `ref_protected`, and environment
+- Production JWT role ≠ stage role (separate Vault policies)
+- Protected runners for prod jobs
+- MR pipelines: no `prod/` secrets
+- On **Community Edition**, use JWT + Vault CLI; scrub logs — no Premium auto-mask ([GITLAB.md](GITLAB.md))
 
 ## Ansible & Dev Container guardrails
 
 - Prefer HashiCorp Vault lookups over Ansible Vault files for team secrets
 - `no_log: true` on tasks that handle passwords / enable / tokens
-- Dev Containers: secrets only via `remoteEnv` / token mount — never `Dockerfile ENV` or committed `.env`
-- CI JWT identity ≠ human OIDC identity (separate audit principals)
-- No plaintext fallback (`default(old_vault_var)`) left in prod playbooks after cutover
+- Dev Containers: secrets only via `remoteEnv` / OIDC — never `Dockerfile ENV` or committed `.env`
+- CI JWT identity ≠ human OIDC identity
+- No plaintext fallback left in prod playbooks after cutover
 
 ---
 
 ## NetClaw guardrails
 
-- Default AppRole → `netclaw-read` only
+- Default AppRole → `netclaw-read` (stage first; prod paths explicitly enabled)
 - Elevate to `netclaw-change` via approval workflow
 - MCP must redact secret values
 - Sandbox (OpenShell / DefenseClaw) for skill execution
-- Deny `secret/data/network/prod/**` until explicitly enabled
+- Prefer SSH CA sign over shared static passwords in prod
 
 ---
 
@@ -98,13 +116,13 @@ Writes require `create` / `update` on `secret/data/...` and should be rare for a
 
 Watch for:
 
-- Sudden spike in `secret/data/network/prod` reads
+- Spike in `secret/data/network/prod` reads
 - Auth failures from Runners or NetClaw host
-- Use of root token
-- Seal status / storage errors
+- Use of root or recovery operations
+- Seal status / Raft peer loss / storage errors
 - Audit log disk filling
 
-Retain audit logs per your org policy (export off-box).
+Retain and ship audit logs per org policy.
 
 ---
 
@@ -114,16 +132,17 @@ Retain audit logs per your org policy (export off-box).
 |------|---------|
 | NetBox API token | 90 days |
 | NetClaw secret-id | 30 days |
-| Device shared passwords (until SSH CA) | 90 days |
-| TLS cert for Vault | per CA lifetime |
+| Device static passwords (until SSH CA) | 90 days |
+| Vault TLS cert | per CA lifetime |
 | Policy review | quarterly |
+| Raft snapshot restore drill | at least annually (prefer quarterly) |
 
 ---
 
 ## Incident response (credential leak)
 
 1. Revoke Vault token / secret-id / rotate KV version.
-2. Rotate device password or invalidate SSH certs.
+2. Rotate device password or invalidate SSH certs (role TTL / CRLs as applicable).
 3. Review audit log for blast radius.
 4. Rotate NetBox token if exposed.
 5. Treat chat transcripts that echoed secrets as compromised artifacts.

@@ -16,7 +16,7 @@ Mermaid diagrams render on GitHub. Each guide embeds diagrams in context; this p
 | 1 Design | Fail closed | Decision flow | [SECURITY.md](SECURITY.md) |
 | 1 Design | Delivery order | Phase flowchart | [WORKPLAN.md](WORKPLAN.md) |
 | 2 Build | Version policy | Snapshot table | [VERSIONS.md](VERSIONS.md) |
-| 2 Build | Install steps | Phase LR flow | [INSTALL.md](INSTALL.md) |
+| 2 Build | HA install | Phase LR flow | [INSTALL.md](INSTALL.md) |
 | 2 Build | KV taxonomy | Strategy A tree | [PATH_LAYOUT.md](PATH_LAYOUT.md) |
 | 3 Integrate | GitLab CE vs Premium | JWT paths | [GITLAB.md](GITLAB.md) |
 | 3 Integrate | Ansible lookups | Auth → modules | [ANSIBLE.md](ANSIBLE.md) |

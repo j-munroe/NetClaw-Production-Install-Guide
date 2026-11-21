@@ -17,4 +17,4 @@ Copy-paste snippets that accompany the guides. Prefer reading the linked doc bef
 | [openclaw-vault.json](openclaw-vault.json) | Vault MCP registration | [NETCLAW](../docs/NETCLAW.md) |
 | [orb-agent-vault.yaml](orb-agent-vault.yaml) | Orb secrets_manager | [NETBOX](../docs/NETBOX.md) |
 
-Flow: **docs (concept) → examples (snippet) → your repo**.
+Flow: **docs (concept) → examples (snippet) → your repo**. Pin image/package versions for production ([../docs/VERSIONS.md](../docs/VERSIONS.md)).

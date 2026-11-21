@@ -1,7 +1,7 @@
 # Local LLM examples
 
-Assumes **latest stable** Ollama, NetClaw container (`:latest`), and current `qwen3:*` tags.  
+Assumes **pinned** Ollama / NetClaw image tags and evaluated `qwen3:*` model tags.  
 See [`../../docs/VERSIONS.md`](../../docs/VERSIONS.md) and [`../../docs/LOCAL_LLM.md`](../../docs/LOCAL_LLM.md).  
 **Hub:** [../../docs/README.md](../../docs/README.md) · [../README.md](../README.md)
 
-For production, pin image digests/tags after lab validation.
+Do not deploy `:latest` to production; pin digests after change control.

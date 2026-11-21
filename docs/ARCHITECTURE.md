@@ -11,12 +11,12 @@ Trust zones and data flows for Vault as secrets SoT. Start the full reading path
 
 | Zone | Components | Secrets access |
 |------|------------|----------------|
-| **Secrets core** | Vault cluster, unseal operators, audit storage | All mounts (admin only) |
+| **Secrets core** | Vault **HA** cluster (Raft), auto-unseal, audit → SIEM | All mounts (admin only) |
 | **CI** | GitLab CE + Runners, Ansible in CI | JWT → Vault CLI (CE) or `secrets:vault` (Premium+) → role-scoped KV |
 | **Workstation** | VS Code Dev Containers, local Ansible | OIDC/token/AppRole via host → `remoteEnv` |
 | **Inventory** | NetBox Community, optional Orb Agent | Token in Vault; device *paths* in NetBox |
 | **Agent** | NetClaw + Vault MCP + DefenseClaw + LLM (Claude/OpenAI/local) | AppRole → read (default); change role gated; model choice in [MODELS.md](MODELS.md) |
-| **Network devices** | Routers/switches/firewalls | Accept SSH cert/OTP or static user from Vault |
+| **Network devices** | Routers/switches/firewalls | Accept SSH cert (preferred) or static user from Vault |
 
 ```mermaid
 flowchart LR

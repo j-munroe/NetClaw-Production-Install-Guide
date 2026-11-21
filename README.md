@@ -1,14 +1,15 @@
 # Vault Documentation
 
-**HashiCorp Vault** as the secrets system of record for agentic network troubleshooting with **GitLab CE**, **Ansible**, **NetBox**, **Dev Containers**, and **NetClaw**.
+**HashiCorp Vault** as the secrets system of record for **production** agentic network troubleshooting with **GitLab CE**, **Ansible**, **NetBox**, **Dev Containers**, and **NetClaw**.
 
 ## Start here
 
 | Audience | Go to |
 |----------|--------|
 | **First-time readers** | **[docs/README.md](docs/README.md)** — reading path & doc hub |
-| **Operators installing Vault** | [docs/INSTALL.md](docs/INSTALL.md) |
+| **Operators deploying Vault** | [docs/INSTALL.md](docs/INSTALL.md) — HA Raft, TLS, auto-unseal |
 | **Delivery / project plan** | [docs/WORKPLAN.md](docs/WORKPLAN.md) |
+| **Security controls** | [docs/SECURITY.md](docs/SECURITY.md) |
 | **Diagrams** | [docs/DIAGRAMS.md](docs/DIAGRAMS.md) |
 
 ```mermaid
@@ -18,8 +19,8 @@ flowchart LR
   Hub --> Integ[3 Integrate]
   Hub --> Agent[4 Agent]
   Hub --> Ref[5 Reference]
-  Design --> Arch[Architecture]
-  Build --> Install[Install + paths]
+  Design --> Arch[Architecture + security]
+  Build --> Install[HA install + path layout]
   Integ --> GL[GitLab / Ansible / NetBox]
   Agent --> NC[NetClaw / SSH CA / models]
 ```
@@ -28,10 +29,10 @@ flowchart LR
 
 | Component | Role |
 |-----------|------|
-| **HashiCorp Vault** | Secrets SoT (KV, SSH CA, optional PKI) |
+| **HashiCorp Vault** (HA) | Secrets SoT (KV, SSH CA, optional PKI) |
 | **GitLab CE + Runners** | JWT → Vault CLI (Premium `secrets:vault` optional) |
 | **Ansible** | `community.hashi_vault` lookups |
-| **VS Code Dev Containers** | Host Vault auth via `remoteEnv` |
+| **VS Code Dev Containers** | Host Vault auth via `remoteEnv` / OIDC |
 | **NetBox Community** | Inventory + `vault_path` (no passwords) |
 | **NetClaw** | Agent + Vault MCP |
 | **ClearPass Onboard** | X.509 / NAC (separate from SSH CA) |
@@ -49,7 +50,7 @@ flowchart TB
 
   subgraph sot [Sources of truth]
     NB[NetBox inventory + vault_path]
-    V[(HashiCorp Vault)]
+    V[(Vault HA cluster)]
   end
 
   subgraph access [Device access]
@@ -72,26 +73,24 @@ flowchart TB
   CP -->|802.1X / device TLS| D
 ```
 
-## Lab quick start
+## Production deploy path
 
-```bash
-cd scripts
-./01-bootstrap-vault.sh
-./02-enable-engines.sh
-./03-write-sample-secrets.sh
-./04-configure-approle.sh
-```
+1. Sign off architecture + security ([docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/SECURITY.md](docs/SECURITY.md)).
+2. Deploy a **3+ node** Raft cluster with TLS and auto-unseal ([docs/INSTALL.md](docs/INSTALL.md)).
+3. Lock path Strategy A for `stage` / `prod` ([docs/PATH_LAYOUT.md](docs/PATH_LAYOUT.md)).
+4. Wire GitLab CE JWT roles (separate stage vs prod) → Ansible → NetBox → NetClaw.
+5. Roll out Vault SSH CA + zero-touch bastion trust; complete backup restore drill.
 
-Then follow **[docs/README.md](docs/README.md)** from **Build → Integrate**. Versions: [docs/VERSIONS.md](docs/VERSIONS.md).
+Pin versions after change control ([docs/VERSIONS.md](docs/VERSIONS.md)). Scripts under `scripts/` are **reference helpers only** — not a production installer.
 
 ## Repository layout
 
 ```
 .
-├── README.md          ← you are here (landing)
+├── README.md          ← landing
 ├── docs/              ← guides (start at docs/README.md)
-├── policies/          ← example Vault HCL
-├── scripts/           ← lab bootstrap
+├── policies/          ← example Vault HCL (stage + prod)
+├── scripts/           ← non-production command references
 └── examples/          ← CI / Ansible / SSH CA / LLM snippets
 ```
 
@@ -100,8 +99,8 @@ Then follow **[docs/README.md](docs/README.md)** from **Build → Integrate**. V
 | [docs/](docs/README.md) | All guides in reading order |
 | [examples/](examples/README.md) | Copy-paste snippets by topic |
 | [policies/](policies/README.md) | Vault ACL examples |
-| [scripts/](scripts/README.md) | Bootstrap helpers |
+| [scripts/](scripts/README.md) | Non-prod reference helpers |
 
 ## Security note
 
-Examples use **placeholders only**. Never commit real tokens, unseal keys, or device passwords. Production: pin image/package versions after lab validation ([VERSIONS.md](docs/VERSIONS.md)).
+Examples use **placeholders only**. Never commit real tokens, unseal/recovery keys, or device passwords. Production consumers **fail closed** when Vault is unavailable.

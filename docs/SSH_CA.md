@@ -420,7 +420,7 @@ flowchart TB
 ## Verification checklist
 
 - [ ] `vault read ssh/config/ca` shows a public key
-- [ ] Lab bastion has `TrustedUserCAKeys` and accepts a 30m Vault-signed cert
+- [ ] Stage then prod bastions have `TrustedUserCAKeys` and accept a ≤30m Vault-signed cert
 - [ ] NetClaw/Ansible can obtain a cert via AppRole/JWT without passwords in git
 - [ ] ClearPass Onboard remains source of truth for NAC X.509; no attempt to use it as SSH CA
 - [ ] Decision recorded for appliance HTTPS: ClearPass vs enterprise PKI vs Vault PKI

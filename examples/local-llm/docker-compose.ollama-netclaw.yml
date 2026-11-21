@@ -1,16 +1,15 @@
-# Lab sketch — uses :latest for Ollama + NetClaw (see docs/VERSIONS.md).
-# Production: pin immutable tags after validation.
+# Ollama + NetClaw compose sketch — pin tags for production (docs/VERSIONS.md).
 # Usage:
 #   docker compose -f docker-compose.ollama-netclaw.yml pull
 #   docker compose -f docker-compose.ollama-netclaw.yml up -d
 #   docker compose -f docker-compose.ollama-netclaw.yml exec ollama ollama pull qwen3:30b
 #   docker compose -f docker-compose.ollama-netclaw.yml exec ollama ollama pull qwen3:8b
 #
-# See docs/LOCAL_LLM.md
+# Prefer a dedicated GPU host for production Main/fallback models — docs/LOCAL_LLM.md
 
 services:
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:0.40.0
     restart: unless-stopped
     volumes:
       - ollama-data:/root/.ollama
@@ -24,7 +23,7 @@ services:
     #           capabilities: [gpu]
 
   netclaw:
-    image: ghcr.io/netclaw-dev/netclaw:latest
+    image: ghcr.io/netclaw-dev/netclaw:0.28.3
     restart: unless-stopped
     stop_grace_period: 60s
     depends_on:

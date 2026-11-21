@@ -1,2 +1,2 @@
-# Latest hvac is assumed; floor matches docs/VERSIONS.md
-hvac>=2.4.0
+# Pin for production images; bump via change control (docs/VERSIONS.md)
+hvac==2.4.0

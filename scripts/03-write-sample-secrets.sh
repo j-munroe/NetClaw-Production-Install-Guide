@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Write placeholder secrets for lab validation. Replace CHANGE_ME values.
+# Reference: example kv put path shapes for stage validation.
+# NOT a production secret loader — replace CHANGE_ME and use controlled process for prod.
 set -euo pipefail
 
 : "${VAULT_ADDR:?Set VAULT_ADDR}"
@@ -11,17 +12,18 @@ vault kv put secret/platform/netbox \
   api_token="CHANGE_ME_NETBOX_TOKEN" \
   url="https://netbox.example.local"
 
+vault kv put secret/network/stage/dc1/rtr-01/credentials \
+  username="netops" \
+  password="CHANGE_ME" \
+  enable_secret="CHANGE_ME"
+
+# Optional isolated non-prod gear
 vault kv put secret/network/lab/dc1/lab-rtr-01/credentials \
   username="netops" \
   password="CHANGE_ME" \
   enable_secret="CHANGE_ME"
 
-vault kv put secret/network/lab/shared/netclaw \
-  username="netclaw" \
-  password="CHANGE_ME"
-
-# Load policies if present
-for p in netclaw-read gitlab-ci netbox-agent netclaw-change ansible-automation; do
+for p in netclaw-read gitlab-ci gitlab-ci-prod netbox-agent netclaw-change ansible-automation; do
   f="$ROOT/policies/${p}.hcl"
   if [[ -f "$f" ]]; then
     vault policy write "$p" "$f"
@@ -29,6 +31,6 @@ for p in netclaw-read gitlab-ci netbox-agent netclaw-change ansible-automation; 
   fi
 done
 
-echo "Sample secrets written under secret/platform/netbox and secret/network/lab/..."
-echo "Replace CHANGE_ME values before any real device use."
-echo "Next: ./04-configure-approle.sh"
+echo "Example secrets under secret/platform/netbox and secret/network/stage/..."
+echo "Do not leave CHANGE_ME values in a cluster that holds real credentials."
+echo "Production install: docs/INSTALL.md"

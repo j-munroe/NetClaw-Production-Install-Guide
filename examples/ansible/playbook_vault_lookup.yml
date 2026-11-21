@@ -2,7 +2,7 @@
 # Minimal example: load device creds from Vault KV v2 for network hosts.
 # Requires VAULT_ADDR + token/AppRole/JWT env (see docs/ANSIBLE.md).
 
-- name: Lab device facts via Vault-backed credentials
+- name: Device facts via Vault-backed credentials
   hosts: network
   gather_facts: false
   vars:

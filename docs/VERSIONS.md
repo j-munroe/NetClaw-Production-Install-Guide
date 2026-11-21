@@ -5,39 +5,41 @@
 > ← [Workplan](WORKPLAN.md) · [Install](INSTALL.md) →
 <!-- doc-nav:end -->
 
-This repository assumes **the latest stable release** of each package unless a note says otherwise.
+**Production default: pin immutable versions.** Track upstream “latest stable” only to decide *what* to pin next — do not run unpinned `:latest` in production.
 
-| Package | Policy | Current latest (as of 2026-11-21) |
-|---------|--------|-----------------------------------|
-| **HashiCorp Vault** (CE) | Latest stable from HashiCorp apt/yum or `hashicorp/vault:latest` | **2.2.2** |
-| **Vault CLI** (CI images) | Same line as server — `hashicorp/vault:latest` | **2.2.2** |
-| **Ollama** | Install script / `ollama/ollama:latest` | **0.40.x** |
-| **Local models** | Latest tags for chosen family (`qwen3:30b`, `qwen3:8b`, …) | Pull at install time |
-| **community.hashi_vault** | Latest Galaxy release | **7.1.0** |
-| **hvac** (Python) | Latest PyPI | **2.4.0** |
-| **NetClaw / OpenClaw** (automateyournetwork) | Latest GitHub release of your chosen harness | Check project releases |
-| **netclaw-dev container** (optional Docker path) | `ghcr.io/netclaw-dev/netclaw:latest` | **0.28.3** |
-| **vault-mcp-server** | `@latest` / newest release binary | Install at deploy time |
-| **Ubuntu (Vault host)** | Current LTS | **24.04** |
-| **GitLab CE + Runner** | Latest CE / Runner your org will run | Track GitLab releases |
+| Package | Production policy | Current stable reference (as of 2026-11-21) |
+|---------|-------------------|-----------------------------------------------|
+| **HashiCorp Vault** (CE) | Pin package / image tag (e.g. `2.2.2`) | **2.2.2** |
+| **Vault CLI** (CI images) | Same pinned line as server | **2.2.2** |
+| **Ollama** | Pin release; upgrade via change control | **0.40.x** |
+| **Local models** | Pin model tags/digests after eval | e.g. `qwen3:30b`, `qwen3:8b` |
+| **community.hashi_vault** | Pin Galaxy version in `requirements.yml` | **7.1.0** |
+| **hvac** (Python) | Pin in lockfile / image | **2.4.0** |
+| **NetClaw / OpenClaw** | Pin GitHub release / image digest | Check project releases |
+| **netclaw container** | Pin tag + digest | e.g. **0.28.3** |
+| **vault-mcp-server** | Pin release binary | Install at deploy time |
+| **Ubuntu (Vault hosts)** | Current LTS | **24.04** |
+| **GitLab CE + Runner** | Org-approved CE / Runner versions | Track GitLab releases |
 
 ## How examples are written
 
-- Docker tags use **`:latest`** for lab/docs so pulls track current stable.
-- For **production**, pin an immutable tag (e.g. `hashicorp/vault:2.2.2`, `ghcr.io/netclaw-dev/netclaw:0.28.3`) after validation, then upgrade deliberately.
-- Ansible `requirements.yml` uses a minimum floor that allows the newest collection (`>=7.1.0`).
-- `pip install hvac` / `ansible-galaxy install community.hashi_vault` without a pin installs latest; CI should record the resolved versions in a lockfile or image build log.
+- Snippets may show a concrete version (e.g. `vault=2.2.2-1`) as the **starting pin**.
+- `:latest` appears only in non-production reference scripts under [`../scripts/`](../scripts/README.md) — do not copy that pattern into prod compose/CI.
+- Ansible `requirements.yml` should pin an exact collection version in production (floor `>=` is for migration only).
+- Record resolved versions in image build logs or lockfiles at every promote.
 
 ## Refresh this table
 
-When bumping docs, re-check:
+When planning an upgrade, re-check:
 
 - https://releases.hashicorp.com/vault/
 - https://github.com/ollama/ollama/releases
 - https://galaxy.ansible.com/ui/repo/published/community/hashi_vault/
 - https://pypi.org/project/hvac/
-- https://github.com/netclaw-dev/netclaw/releases (Docker harness)
-- https://github.com/automateyournetwork/netclaw/releases (network agent)
+- https://github.com/netclaw-dev/netclaw/releases
+- https://github.com/automateyournetwork/netclaw/releases
+
+Upgrade Vault with a change window: standby → active rolling restart, snapshot before, verify `raft list-peers` after.
 
 <!-- doc-footer:start -->
 ---

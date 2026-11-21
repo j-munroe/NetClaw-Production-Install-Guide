@@ -69,7 +69,7 @@ export VAULT_TOKEN=$(vault print token)   # if using token helper
 
 Ensure the integrated terminal inherits the host environment (VS Code setting **Terminal › Integrated: Inherit Env**).
 
-### Option B — AppRole for a dedicated “dev” role (lab only)
+### Option B — AppRole for a dedicated engineer role (non-prod paths only)
 
 ```bash
 export VAULT_ADDR=https://vault.example.local:8200
@@ -79,7 +79,7 @@ export VAULT_TOKEN=$(vault write -field=token auth/approle/login \
   role_id="$VAULT_ROLE_ID" secret_id="$VAULT_SECRET_ID")
 ```
 
-Use a **dev/lab** policy (`ansible-dev` / `netclaw-read`), never prod-wide admin.
+Use a **stage-scoped** policy (`ansible-automation` / `netclaw-read`), never prod-wide admin. Prefer OIDC for humans in production.
 
 ### Option C — Vault Agent on the host
 
@@ -143,7 +143,7 @@ Install the Vault CLI in the image (package or feature) so engineers can `vault 
 With `VAULT_ADDR` + `VAULT_TOKEN` present:
 
 ```bash
-ansible-playbook -i inventory/lab playbooks/site.yml
+ansible-playbook -i inventory/stage playbooks/site.yml
 ```
 
 Lookups use `community.hashi_vault` as in [ANSIBLE.md](ANSIBLE.md). No `ansible-vault` password prompt for migrated vars.
@@ -157,9 +157,9 @@ If you use VS Code tasks, reference env vars — do not put secrets in `.vscode/
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "ansible: lab playbook",
+      "label": "ansible: stage playbook",
       "type": "shell",
-      "command": "ansible-playbook -i inventory/lab playbooks/site.yml",
+      "command": "ansible-playbook -i inventory/stage playbooks/site.yml",
       "options": { "env": { "VAULT_ADDR": "${env:VAULT_ADDR}" } },
       "problemMatcher": []
     }
@@ -177,13 +177,13 @@ If you use VS Code tasks, reference env vars — do not put secrets in `.vscode/
 | Local Dev Container | Human OIDC/token → Vault (this doc) |
 | Same playbooks | Identical Vault **paths**; different **auth** |
 
-Do not copy CI JWT tokens into Dev Containers. Engineers use human or lab AppRole identities so audit trails stay meaningful.
+Do not copy CI JWT tokens into Dev Containers. Engineers use human OIDC (preferred) or stage-scoped AppRole identities so audit trails stay meaningful.
 
 ---
 
 ## 6. Migration steps (per Dev Container project)
 
-1. **List** secrets the container needs (Ansible, NetBox, cloud APIs, lab enable passwords).
+1. **List** secrets the container needs (Ansible, NetBox, cloud APIs, device enable secrets).
 2. **Ensure** each exists in Vault under the standard path layout.
 3. **Strip** secrets from `.env` / Dockerfile / `devcontainer.json`.
 4. **Add** `remoteEnv` + optional `~/.vault-token` mount.
@@ -196,7 +196,7 @@ Do not copy CI JWT tokens into Dev Containers. Engineers use human or lab AppRol
 ## 7. Hardening checklist
 
 - [ ] Dev Container network can reach `VAULT_ADDR:8200` (VPN/DNS/CA trust)
-- [ ] Lab policy for humans/dev AppRole; prod access break-glass or separate role
+- [ ] Stage-scoped policy for humans; prod access via separate role or break-glass
 - [ ] No Docker image published with tokens in layers (`docker history`)
 - [ ] Disable committing `.env` via `.gitignore`; provide `.env.example` with **names only**
 - [ ] Prefer read-only mounts for token files
@@ -214,9 +214,9 @@ VAULT_ADDR=https://vault.example.local:8200
 
 ## 8. Acceptance criteria
 
-- Container rebuilds and Ansible lab run succeed **without** any password file in the git tree
+- Container rebuilds and Ansible stage run succeed **without** any password file in the git tree
 - `VAULT_TOKEN` absent ⇒ playbook fails clearly (no silent plaintext fallback)
-- Vault audit shows the engineer’s identity (OIDC/entity) or lab AppRole — not a shared root token
+- Vault audit shows the engineer’s identity (OIDC/entity) or stage AppRole — not a shared root token
 - Same Vault paths work from Dev Container and GitLab CI ([ANSIBLE.md](ANSIBLE.md))
 
 <!-- doc-footer:start -->

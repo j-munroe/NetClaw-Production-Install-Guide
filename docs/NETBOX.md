@@ -38,8 +38,8 @@ Pick one approach and use it consistently.
 secret/network/{env}/{site}/{device_name}/credentials
 ```
 
-Example: device `lab-rtr-01`, site `dc1`, env `lab` →  
-`secret/network/lab/dc1/lab-rtr-01/credentials`
+Example: device `rtr-01`, site `dc1`, env `stage` →  
+`secret/network/stage/dc1/rtr-01/credentials`
 
 This is **Strategy A** in [PATH_LAYOUT.md](PATH_LAYOUT.md) (recommended default).
 
@@ -49,14 +49,14 @@ Add a device (or device-role) custom field:
 
 | Field | Type | Example |
 |-------|------|---------|
-| `vault_path` | Text | `network/lab/dc1/lab-rtr-01/credentials` |
+| `vault_path` | Text | `network/stage/dc1/rtr-01/credentials` |
 
 Automation reads NetBox device → `vault_path` → `vault kv get secret/<vault_path>`.
 
 Optional fields:
 
 - `vault_ssh_role` → e.g. `netclaw-troubleshoot`
-- `credential_env` → `lab` / `prod`
+- `credential_env` → `stage` / `prod`
 
 ---
 
@@ -124,7 +124,7 @@ sequenceDiagram
 - [ ] Service account in NetBox (not a human user)
 - [ ] Token only in Vault
 - [ ] `vault_path` convention documented for the team
-- [ ] Lab device end-to-end: NetBox lookup → Vault read → login
+- [ ] Stage device end-to-end: NetBox lookup → Vault read → login (then prod)
 - [ ] Confirm Community edition plugins/fields match your NetBox version
 
 <!-- doc-footer:start -->

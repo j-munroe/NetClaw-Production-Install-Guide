@@ -9,13 +9,13 @@ NetClaw is **BYOM** (bring your own model). It works with Anthropic, OpenAI, Bed
 
 ## Recommendation (this stack)
 
-For on-prem GitLab, NetBox, Vault, Ansible, and production-leaning NetClaw use:
+For on-prem GitLab, NetBox, Vault, Ansible, and **production** NetClaw use:
 
 | Role | Choice | Why |
 |------|--------|-----|
 | **Main** (troubleshooting, multi-MCP reasoning) | **Claude** (latest Sonnet/Opus class available to you) | NetClaw is built and demoed primarily on Claude; strongest fit for long, tool-heavy CCIE-style workflows |
 | **Alternate Main** | **OpenAI** (latest strong reasoning / GPT-class tier) | Fully supported via BYOM; use when enterprise standards require OpenAI |
-| **Local (Ollama / LM Studio / etc.)** | **Fallback, compaction, or air-gap lab** | Sovereignty and cost; weaker on complex multi-MCP runs unless you run a large model (~30B class) on serious GPU |
+| **Local (Ollama / LM Studio / etc.)** | **Fallback, compaction, or air-gapped production** | Sovereignty and cost; weaker on complex multi-MCP runs unless you run a large model (~30B class) on serious GPU |
 
 **Default:** Claude as Main. Local for fallback/compaction (or air-gapped Main). OpenAI only if procurement/security already standardizes on it.
 
@@ -82,7 +82,7 @@ Use when:
 
 - Air-gapped or “no show-command output leaves the building”
 - Compaction/fallback to cut cloud spend
-- Lab/pilot without cloud API access
+- Air-gapped or sovereignty-constrained production without cloud API access
 
 **Recommended local stack:** Ollama + **`qwen3:30b`** (Main) + **`qwen3:8b`** (Fallback/Compaction). Full install steps: [LOCAL_LLM.md](LOCAL_LLM.md).
 
@@ -116,7 +116,7 @@ Compaction:  qwen3:8b
 
 Install guide: [LOCAL_LLM.md](LOCAL_LLM.md). Tighten SOUL.md and remove or gate write tools (e.g. configure) so the agent stays read-only until you are ready ([NETCLAW.md](NETCLAW.md)).
 
-### Cost-sensitive lab
+### Cost-sensitive / air-gap
 
 ```
 Main:        Claude Sonnet-class  OR  capable local if GPU available
@@ -142,7 +142,7 @@ Compaction:  Local small
 - [ ] If yes → Claude Main unless OpenAI is mandated
 - [ ] Set Fallback + Compaction (prefer local for compaction)
 - [ ] Store provider API keys in Vault or host secret store; wire via env, not git
-- [ ] Validate one lab troubleshooting scenario end-to-end before prod devices
+- [ ] Validate one stage troubleshooting scenario end-to-end before prod devices
 - [ ] Re-evaluate after first month: failure modes are usually tools/policy, not “wrong brand”
 
 ---
@@ -151,7 +151,7 @@ Compaction:  Local small
 
 - Main model documented in your NetClaw/OpenClaw config and runbook
 - API keys not in the GitLab repo
-- At least one successful lab troubleshoot with Vault-backed device access
+- At least one successful stage troubleshoot with Vault-backed device access
 - Air-gap or sovereignty requirements explicitly mapped to local vs cloud Main
 
 <!-- doc-footer:start -->

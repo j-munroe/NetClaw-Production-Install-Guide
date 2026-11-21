@@ -12,7 +12,7 @@ variables:
 
 seed_vault_ssh_ca_trust:
   stage: seed_ssh_ca
-  image: "your.registry.example/network-ansible:latest"
+  image: "your.registry.example/network-ansible:1.0.0"
   id_tokens:
     VAULT_ID_TOKEN:
       aud: https://vault.example.local
@@ -21,7 +21,7 @@ seed_vault_ssh_ca_trust:
     - |
       if [[ "${REFRESH_CA_PUBKEY:-false}" == "true" ]]; then
         export VAULT_TOKEN="$(vault write -field=token auth/jwt/login \
-          role="${VAULT_AUTH_ROLE:-gitlab-network-lab}" jwt="${VAULT_ID_TOKEN}")"
+          role="${VAULT_AUTH_ROLE:-gitlab-network-stage}" jwt="${VAULT_ID_TOKEN}")"
         vault read -field=public_key ssh/config/ca > ansible/files/vault-ssh-ca.pub
       fi
     - ansible-galaxy collection install -r requirements.yml

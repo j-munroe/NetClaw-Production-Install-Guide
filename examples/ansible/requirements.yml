@@ -1,3 +1,3 @@
 collections:
   - name: community.hashi_vault
-    version: ">=7.1.0"   # install latest; floor allows current Galaxy release
+    version: "7.1.0"   # pin for production — bump via change control (docs/VERSIONS.md)

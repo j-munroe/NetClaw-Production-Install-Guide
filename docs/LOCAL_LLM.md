@@ -40,7 +40,7 @@ Upstream: [Models](https://netclaw.dev/configuration/models/) · [Self-hosted pr
 
 | Hardware | Suggested models |
 |----------|------------------|
-| 16 GB RAM, no discrete GPU | `qwen3:8b` Main (slow); lab only |
+| 16 GB RAM, no discrete GPU | `qwen3:8b` Main (slow); not for production Main |
 | ~8–12 GB VRAM (e.g. RTX 3060/4060 12 GB) | Main `qwen3:14b`, Compaction `qwen3:8b` |
 | ~20–24 GB VRAM / unified memory | Main `qwen3:30b` or `qwen3:30b-a3b`, Compaction `qwen3:8b` |
 | 32 GB+ VRAM / Mac Studio class | Main `qwen3:30b` or larger; keep 8B for compaction |
@@ -220,21 +220,21 @@ Example snippets: [`../examples/local-llm/`](../examples/local-llm/).
 
 ---
 
-## 5. Docker Compose lab (Ollama + NetClaw)
+## 5. Docker Compose (Ollama + NetClaw) — pin for production
 
-Sketch aligned with NetClaw’s Docker docs. Docs assume **latest stable** images ([VERSIONS.md](VERSIONS.md)); pin immutable tags in production after validation.
+Sketch aligned with NetClaw’s Docker docs. **Pin immutable tags/digests** in production ([VERSIONS.md](VERSIONS.md)). Prefer a dedicated GPU host for Ollama with host networking/firewall rather than a shared laptop compose stack.
 
 ```yaml
 services:
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:0.40.0   # pin — example
     restart: unless-stopped
     volumes:
       - ollama-data:/root/.ollama
     # deploy GPU reservations here if using NVIDIA Container Toolkit
 
   netclaw:
-    image: ghcr.io/netclaw-dev/netclaw:latest
+    image: ghcr.io/netclaw-dev/netclaw:0.28.3   # pin — example
     restart: unless-stopped
     depends_on: [ollama]
     volumes:
@@ -312,7 +312,7 @@ netclaw model set main llama-local <id-from-discover> --context-window 32768
 - [ ] `curl http://<ollama-host>:11434/api/tags` from the NetClaw host succeeds
 - [ ] `netclaw status` (or OpenClaw equivalent) shows Main with ≥32k context when intended
 - [ ] `netclaw doctor` has no “No valid model configuration” / degraded Main
-- [ ] One lab chat turn that invokes a tool (e.g. NetBox or device show) completes
+- [ ] One stage chat turn that invokes a tool (e.g. NetBox or device show) completes
 - [ ] Compaction/Fallback use `qwen3:8b` if configured
 - [ ] Hybrid installs still keep Claude API keys out of git
 
@@ -320,7 +320,7 @@ netclaw model set main llama-local <id-from-discover> --context-window 32768
 
 ## 10. Acceptance criteria
 
-- Documented Ollama host + model tags for lab and (if used) prod air-gap
+- Documented Ollama host + pinned model tags for production (or air-gap) use
 - NetClaw Main resolves to the intended local or hybrid definition after daemon restart
 - Team runbook includes GPU sizing and which model to use when VRAM is short (`14b` vs `30b`)
 

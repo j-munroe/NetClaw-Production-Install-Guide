@@ -1,17 +1,17 @@
 # GitLab Community Edition: JWT id_tokens + Vault CLI (recommended for this project).
 # secrets:vault is Premium/Ultimate only — see gitlab-ci-premium-secrets-vault.yml
-# Docs: docs/GITLAB.md
+# Docs: docs/GITLAB.md — pin Vault image tag in production (docs/VERSIONS.md)
 
 stages:
   - validate
 
 variables:
   VAULT_ADDR: "https://vault.example.local:8200"
-  VAULT_AUTH_ROLE: "gitlab-network-lab"
+  VAULT_AUTH_ROLE: "gitlab-network-stage"
 
-lab_secret_smoke:
+stage_secret_smoke:
   stage: validate
-  image: hashicorp/vault:latest   # pin e.g. :2.2.2 in production — docs/VERSIONS.md
+  image: hashicorp/vault:2.2.2
   id_tokens:
     VAULT_ID_TOKEN:
       aud: https://vault.example.local
@@ -22,7 +22,7 @@ lab_secret_smoke:
         role="${VAULT_AUTH_ROLE}" jwt="${VAULT_ID_TOKEN}")"
       export NETBOX_TOKEN="$(vault kv get -field=api_token secret/platform/netbox)"
       echo "NETBOX_TOKEN length: ${#NETBOX_TOKEN}"
-      vault kv get -field=password secret/network/lab/dc1/lab-rtr-01/credentials \
+      vault kv get -field=password secret/network/stage/dc1/rtr-01/credentials \
         > /tmp/device_password
       chmod 600 /tmp/device_password
       test -s /tmp/device_password

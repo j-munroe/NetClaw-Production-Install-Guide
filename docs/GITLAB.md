@@ -59,12 +59,12 @@ If your GitLab uses a custom CA, ensure Vault trusts it (`VAULT_CACERT` on the V
 
 ---
 
-## 2. Role for network automation project
+## 2. Roles for network automation (stage vs prod)
 
-Example: allow `lab` reads from project `network/automation` on protected branches.
+Use **separate JWT roles and policies**. Example: stage reads for project `network/automation` on protected branches:
 
 ```bash
-vault write auth/jwt/role/gitlab-network-lab \
+vault write auth/jwt/role/gitlab-network-stage \
   role_type="jwt" \
   user_claim="user_email" \
   bound_audiences="https://vault.example.local" \
@@ -76,9 +76,20 @@ vault write auth/jwt/role/gitlab-network-lab \
   claim_mappings='{"project_path":"project_path","ref":"ref"}' \
   token_policies="gitlab-ci" \
   token_ttl="15m"
-```
 
-Create a stricter role for production (separate policy limited to `secret/data/network/prod/...`).
+# Production — policy gitlab-ci-prod; tighten bound_claims with environment if used
+vault write auth/jwt/role/gitlab-network-prod \
+  role_type="jwt" \
+  user_claim="user_email" \
+  bound_audiences="https://vault.example.local" \
+  bound_claims_type="glob" \
+  bound_claims='{
+    "project_path": "network/automation",
+    "ref_protected": "true"
+  }' \
+  token_policies="gitlab-ci-prod" \
+  token_ttl="15m"
+```
 
 ---
 
@@ -90,9 +101,9 @@ Set at group or project level (not masked secrets of device passwords):
 |----------|---------|-----------|
 | `VAULT_SERVER_URL` / `VAULT_ADDR` | `https://vault.example.local:8200` | Yes |
 | `VAULT_AUTH_PATH` | `jwt` | Optional |
-| `VAULT_AUTH_ROLE` | `gitlab-network-lab` | Yes |
+| `VAULT_AUTH_ROLE` | `gitlab-network-stage` or `gitlab-network-prod` | Yes |
 
-Optional: `VAULT_CACERT` as a **File** variable containing your CA PEM.
+Optional: `VAULT_CACERT` as a **File** variable containing your CA PEM. Always set it in production (no `VAULT_SKIP_VERIFY`).
 
 ---
 
@@ -108,11 +119,11 @@ stages:
 
 variables:
   VAULT_ADDR: "https://vault.example.local:8200"
-  VAULT_AUTH_ROLE: "gitlab-network-lab"
+  VAULT_AUTH_ROLE: "gitlab-network-stage"
 
-read_lab_creds:
+read_stage_creds:
   stage: troubleshoot
-  image: hashicorp/vault:latest
+  image: hashicorp/vault:2.2.2   # pin — docs/VERSIONS.md
   id_tokens:
     VAULT_ID_TOKEN:
       aud: https://vault.example.local
@@ -124,7 +135,7 @@ read_lab_creds:
     - export NETBOX_TOKEN="$(vault kv get -field=api_token secret/platform/netbox)"
     - echo "NetBox token length: ${#NETBOX_TOKEN}"
     - |
-      vault kv get -field=password secret/network/lab/dc1/lab-rtr-01/credentials \
+      vault kv get -field=password secret/network/stage/dc1/rtr-01/credentials \
         > /tmp/device_password
       chmod 600 /tmp/device_password
       echo "Device password file written (contents not printed)"
@@ -145,7 +156,7 @@ Notes for CE:
 If you upgrade to Premium+, GitLab can inject KV secrets declaratively:
 
 ```yaml
-read_lab_creds:
+read_stage_creds:
   id_tokens:
     VAULT_ID_TOKEN:
       aud: https://vault.example.local
@@ -155,7 +166,7 @@ read_lab_creds:
       file: false
       token: $VAULT_ID_TOKEN
     DEVICE_PASSWORD:
-      vault: network/lab/dc1/lab-rtr-01/credentials/password@secret
+      vault: network/stage/dc1/rtr-01/credentials/password@secret
       file: true
       token: $VAULT_ID_TOKEN
   script:
@@ -184,10 +195,11 @@ read_lab_creds:
 - [ ] Confirm edition: CE → JWT + CLI; Premium+ → optional `secrets:vault`
 - [ ] Inventory all CI variables that hold passwords/tokens
 - [ ] Write each into Vault under the path convention
-- [ ] Switch one protected-branch job to JWT login + Vault read
-- [ ] Remove plaintext variable from GitLab after validation
+- [ ] Create separate JWT roles/policies for stage and prod
+- [ ] Switch protected-branch jobs to JWT login + Vault read
+- [ ] Remove plaintext variables from GitLab after validation
 - [ ] Confirm secrets never appear in job logs
-- [ ] Repeat per environment (`lab` → `stage` → `prod`)
+- [ ] Promote stage → prod with protected runners
 
 ---
 

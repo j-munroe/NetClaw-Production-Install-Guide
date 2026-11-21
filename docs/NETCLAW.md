@@ -79,16 +79,7 @@ export VAULT_TOKEN=$(vault write -field=token auth/approle/login \
   role_id="$VAULT_ROLE_ID" secret_id="$VAULT_SECRET_ID")
 ```
 
-> The MCP server commonly expects `VAULT_TOKEN`. Refresh the token on a schedule shorter than `token_ttl`.
-
-### Lab-only: static token
-
-```bash
-VAULT_ADDR=https://vault.example.local:8200
-VAULT_TOKEN=hvs.CHANGE_ME
-```
-
-Do not use root tokens.
+> The MCP server commonly expects `VAULT_TOKEN`. Refresh the token on a schedule shorter than `token_ttl` (systemd timer or wrapper). Prefer AppRole renewal over long-lived static tokens. Never use root.
 
 ---
 
@@ -119,9 +110,9 @@ Restart the NetClaw / OpenClaw gateway after registration.
 
 Attach `netclaw-read` by default:
 
-- Read `secret/data/network/lab/**` and platform tokens needed for inventory
+- Read `secret/data/network/stage/**` (and prod only after change control) plus platform tokens
 - List metadata
-- Issue SSH creds for troubleshoot role only
+- Sign SSH certs for troubleshoot role only
 
 Use `netclaw-change` only when:
 
@@ -136,12 +127,12 @@ Policy files: [`../policies/`](../policies/).
 
 Good:
 
-- “List secrets under `secret/network/lab` (names only).”
-- “Resolve `lab-rtr-01` from NetBox, fetch Vault creds, run a show interface summary.”
+- “List secrets under `secret/network/stage` (names only).”
+- “Resolve `rtr-01` from NetBox, fetch Vault creds or SSH cert, run a show interface summary.”
 
 Bad:
 
-- “Print the password for lab-rtr-01.”
+- “Print the password for rtr-01.”
 - “Dump all prod credentials.”
 
 If the model attempts to display a secret, skills/MCP should redact; treat visible secrets as an incident.
@@ -152,19 +143,19 @@ If the model attempts to display a secret, skills/MCP should redact; treat visib
 
 - [ ] `vault-mcp` appears in MCP server list
 - [ ] List paths works; values redacted
-- [ ] Lab device login via injected creds succeeds
+- [ ] Stage device login via injected creds or SSH cert succeeds
 - [ ] Vault audit log shows AppRole / policy name
-- [ ] Prod paths denied under `netclaw-read`
+- [ ] Prod paths denied until explicitly enabled
 - [ ] Write/change requires approval path
 
 ---
 
 ## 8. Transition from `.env` device passwords
 
-NetClaw `.env.example` includes `NETCLAW_USERNAME` / `NETCLAW_PASSWORD` for quick labs. For your on-prem path:
+NetClaw `.env.example` may show `NETCLAW_USERNAME` / `NETCLAW_PASSWORD`. For production:
 
-1. Keep lab `.env` only on disposable labs.
-2. Point skills/testbeds at Vault-backed injection.
+1. Do not run production NetClaw with plaintext device passwords in `.env`.
+2. Point skills at Vault-backed injection / SSH CA.
 3. Remove static passwords from host env once Phase 5 acceptance passes ([WORKPLAN.md](WORKPLAN.md)).
 
 <!-- doc-footer:start -->

@@ -1,18 +1,19 @@
 # Fragment: GitLab Community Edition — JWT + Vault CLI, then Ansible lookups.
 # Works on CE (no secrets:vault). Merge into your project .gitlab-ci.yml.
 # See docs/GITLAB.md and docs/ANSIBLE.md. Image must include vault CLI + ansible.
+# Pin the Ansible/Vault image tags in production (docs/VERSIONS.md).
 
 stages:
   - automate
 
 variables:
   VAULT_SERVER_URL: "https://vault.example.local:8200"
-  VAULT_AUTH_ROLE: "gitlab-network-lab"
+  VAULT_AUTH_ROLE: "gitlab-network-stage"
   VAULT_ADDR: "$VAULT_SERVER_URL"
 
-ansible_lab:
+ansible_stage:
   stage: automate
-  image: "your.registry.example/network-ansible:latest"
+  image: "your.registry.example/network-ansible:1.0.0"
   id_tokens:
     VAULT_ID_TOKEN:
       aud: https://vault.example.local
@@ -22,6 +23,6 @@ ansible_lab:
     - export ANSIBLE_HASHI_VAULT_ADDR="${VAULT_ADDR}"
     - export ANSIBLE_HASHI_VAULT_TOKEN="${VAULT_TOKEN}"
   script:
-    - ansible-playbook -i inventory/lab playbooks/site.yml
+    - ansible-playbook -i inventory/stage playbooks/site.yml
   rules:
     - if: '$CI_COMMIT_REF_PROTECTED == "true"'

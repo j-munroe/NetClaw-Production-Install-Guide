@@ -1,45 +1,64 @@
-# Install & bootstrap: HashiCorp Vault
+# Production install: HashiCorp Vault
 
 <!-- doc-nav:start -->
 > **Hub:** [Documentation home](README.md) · **2. Build**  
 > ← [Versions](VERSIONS.md) · [Path layout](PATH_LAYOUT.md) →
 <!-- doc-nav:end -->
 
-This guide installs Vault for lab or first production footprint, then enables the engines used by GitLab, NetBox, and NetClaw.
+This guide builds a **production-grade** Vault cluster for GitLab CE, Ansible, NetBox, Dev Containers, and NetClaw. It assumes on-prem (or private cloud) infrastructure with real TLS, HA storage, auto-unseal, audit, and backup — not a single-node “dev server” or Docker `tls_disable` container.
 
-Replace every `CHANGE_ME` / example hostname before use.
+Replace every `CHANGE_ME` / example hostname before use. Pin package versions per [VERSIONS.md](VERSIONS.md).
 
 ```mermaid
 flowchart LR
-  P0[0 Prereqs] --> P1[1 Install]
-  P1 --> P2[2 Config TLS]
-  P2 --> P3[3 Init unseal audit]
+  P0[0 Prereqs] --> P1[1 Install nodes]
+  P1 --> P2[2 TLS + Raft config]
+  P2 --> P3[3 Init auto-unseal audit]
   P3 --> P4[4 Engines]
   P4 --> P5[5 Paths]
   P5 --> P6[6 Policies]
   P6 --> P7[7 Auth]
   P7 --> P8[8 SSH CA]
-  P8 --> P9[9 Verify]
+  P8 --> P9[9 HA verify + backup]
 ```
 
-Diagram index: [DIAGRAMS.md](DIAGRAMS.md) · SSH detail: [SSH_CA.md](SSH_CA.md)
+Diagram index: [DIAGRAMS.md](DIAGRAMS.md) · SSH detail: [SSH_CA.md](SSH_CA.md) · Controls: [SECURITY.md](SECURITY.md)
+
+---
+
+## Production baseline (non-negotiable)
+
+| Requirement | Production expectation |
+|-------------|------------------------|
+| **Topology** | **3+ Vault nodes** (odd count) with integrated **Raft** storage |
+| **TLS** | Listener TLS from your enterprise / internal CA; clients verify with `VAULT_CACERT` |
+| **Unseal** | **Auto-unseal** (cloud KMS, HSM, or Transit from a separate seal Vault) — not day-2 human Shamir |
+| **Audit** | Always-on file or socket audit; logs shipped off-box |
+| **Versions** | **Pinned** immutable tags/packages after change control ([VERSIONS.md](VERSIONS.md)) |
+| **Root token** | Used once at bootstrap; then revoked or offline escrow |
+| **Fail closed** | Consumers have **no** plaintext secret fallback when Vault is down |
+| **Scripts in `../scripts/`** | **Not** a production installer — command reference only |
+
+Do **not** use Vault `-dev`, `VAULT_DEV_ROOT_TOKEN_ID`, `tls_disable = 1`, or `VAULT_SKIP_VERIFY=1` in any environment that holds real credentials.
 
 ---
 
 ## 0. Prerequisites
 
-- Linux host (**Ubuntu 24.04 LTS** recommended, or current RHEL) — see [VERSIONS.md](VERSIONS.md)
-- Outbound access to HashiCorp package repos **or** offline package mirror
-- DNS name, e.g. `vault.example.local`
-- TLS certificate + key (or lab self-signed for testing only)
-- Ports: `8200/tcp` (API), `8201/tcp` (cluster, HA only)
-- Firewall allow from: GitLab Runners, NetBox/Orb host, NetClaw host, admin jump hosts
-
-Optional helper scripts live in [`../scripts/`](../scripts/).
+- Three (or five) Linux VMs — **Ubuntu 24.04 LTS** or current RHEL; dedicated to Vault
+- Sizing (starting point; scale with audit volume and peak QPS): **4 vCPU / 8 GB RAM / 100+ GB SSD** per node
+- DNS: `vault.example.local` → load balancer or DNS round-robin to nodes; per-node names `vault-1` … `vault-3`
+- TLS server certs (SAN includes cluster DNS + node names) + private keys; CA bundle for clients
+- Auto-unseal target: cloud KMS, PKCS#11 HSM, or Transit seal Vault (separate from this cluster)
+- Network: `8200/tcp` (API), `8201/tcp` (Raft) between nodes; allow GitLab Runners, NetBox/Orb, NetClaw, admin jump hosts to `8200`
+- Outbound package access **or** internal mirror of HashiCorp apt/yum
+- Change window + break-glass runbook for seal/restore
 
 ---
 
-## 1. Install Vault binary (Ubuntu example)
+## 1. Install Vault on each node
+
+Pin the package (example shows current line — substitute your approved version):
 
 ```bash
 sudo apt-get update
@@ -53,61 +72,81 @@ echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
   | sudo tee /etc/apt/sources.list.d/hashicorp.list
 
 sudo apt-get update
-sudo apt-get install -y vault   # latest stable from HashiCorp apt
-vault version                   # expect current 2.x line unless you pin
+sudo apt-get install -y vault=2.2.2-1   # pin; adjust package revision for your distro
+vault version
 ```
 
-**Container alternative (lab):**
+Create the `vault` system user/dirs if the package did not:
 
 ```bash
-docker volume create vault-data
-docker run -d --name vault \
-  -p 8200:8200 \
-  -v vault-data:/vault/file \
-  -e 'VAULT_LOCAL_CONFIG={"storage":{"file":{"path":"/vault/file"}},"listener":{"tcp":{"address":"0.0.0.0:8200","tls_disable":1}},"ui":true}' \
-  --cap-add=IPC_LOCK \
-  hashicorp/vault:latest server
+sudo mkdir -p /opt/vault/data /opt/vault/tls /var/log/vault
+sudo chown -R vault:vault /opt/vault /var/log/vault
+# Install vault.crt / vault.key + ca.crt into /opt/vault/tls (mode 640, owner vault)
 ```
-
-> Lab-only: `tls_disable:1` is unacceptable for production. Use TLS as shown below.  
-> Images track **latest stable Vault** ([VERSIONS.md](VERSIONS.md)); pin a version tag in production.
 
 ---
 
-## 2. Server configuration (production-shaped)
+## 2. Server configuration (Raft HA + TLS)
 
-Create `/etc/vault.d/vault.hcl`:
+`/etc/vault.d/vault.hcl` on **vault-1** (adjust `node_id`, `api_addr`, `cluster_addr`, and `retry_join` per node):
 
 ```hcl
 ui = true
 disable_mlock = false
 
+cluster_name = "vault-prod"
+
 storage "raft" {
   path    = "/opt/vault/data"
   node_id = "vault-1"
+
+  retry_join {
+    leader_api_addr = "https://vault-1.example.local:8200"
+  }
+  retry_join {
+    leader_api_addr = "https://vault-2.example.local:8200"
+  }
+  retry_join {
+    leader_api_addr = "https://vault-3.example.local:8200"
+  }
 }
 
 listener "tcp" {
-  address       = "0.0.0.0:8200"
-  tls_cert_file = "/opt/vault/tls/vault.crt"
-  tls_key_file  = "/opt/vault/tls/vault.key"
+  address            = "0.0.0.0:8200"
+  cluster_address    = "0.0.0.0:8201"
+  tls_cert_file      = "/opt/vault/tls/vault.crt"
+  tls_key_file       = "/opt/vault/tls/vault.key"
+  tls_client_ca_file = "/opt/vault/tls/ca.crt"
 }
 
-api_addr     = "https://vault.example.local:8200"
-cluster_addr = "https://vault.example.local:8201"
+api_addr     = "https://vault-1.example.local:8200"
+cluster_addr = "https://vault-1.example.local:8201"
 
-# Optional telemetry later
+# Auto-unseal — pick ONE backend your platform supports (examples below).
+# seal "awskms" {
+#   region     = "us-east-1"
+#   kms_key_id = "CHANGE_ME_KMS_KEY_ARN"
+# }
+# seal "azurekeyvault" { ... }
+# seal "gcpckms" { ... }
+# seal "pkcs11" { ... }
+# seal "transit" {
+#   address         = "https://seal-vault.example.local:8200"
+#   token           = "CHANGE_ME_OR_USE_FILE"
+#   disable_renewal = "false"
+#   key_name        = "autounseal"
+#   mount_path      = "transit/"
+# }
+
+telemetry {
+  prometheus_retention_time = "24h"
+  disable_hostname          = false
+}
 ```
 
-Prepare directories:
+Repeat on vault-2 / vault-3 with matching `retry_join` and unique `node_id` / addresses.
 
-```bash
-sudo mkdir -p /opt/vault/data /opt/vault/tls /var/log/vault
-sudo chown -R vault:vault /opt/vault /var/log/vault
-# Install vault.crt / vault.key into /opt/vault/tls (mode 640, owner vault)
-```
-
-Enable and start:
+Enable and start on each node:
 
 ```bash
 sudo systemctl enable vault
@@ -115,106 +154,103 @@ sudo systemctl start vault
 sudo systemctl status vault
 ```
 
+Front the API with an internal load balancer (or VIP) at `https://vault.example.local:8200` that health-checks `/v1/sys/health`. Clients and CI should use the VIP, not a single node.
+
 ---
 
-## 3. Initialize, unseal, audit
+## 3. Initialize, auto-unseal, audit, revoke root
+
+On **one** node (first start):
 
 ```bash
 export VAULT_ADDR="https://vault.example.local:8200"
-# If using lab self-signed:
-# export VAULT_SKIP_VERIFY=1
+export VAULT_CACERT="/opt/vault/tls/ca.crt"
 
-vault operator init -key-shares=5 -key-threshold=3 -format=json > /root/vault-init.json
-# MOVE /root/vault-init.json to offline escrow IMMEDIATELY. Do not leave on disk.
+# With auto-unseal configured, init still emits recovery keys + root token.
+vault operator init -format=json > /root/vault-init.json
+# MOVE to offline multi-party escrow IMMEDIATELY. Wipe the disk copy.
 ```
 
-Unseal (run 3 times with different key shares):
+Confirm:
 
 ```bash
-vault operator unseal
 vault status
+# sealed=false, HA Mode = active|standby, Storage Type = raft
+vault operator raft list-peers
 ```
 
-Login with root token once:
+Login once with the root token, then enable audit and ship logs off-box:
 
 ```bash
 vault login
-```
-
-Enable audit:
-
-```bash
 vault audit enable file file_path=/var/log/vault/audit.log
+# Prefer socket/syslog forwarder or agent that ships /var/log/vault/ to your SIEM
 ```
 
-Create an admin policy token for day-2 work, then **revoke root** or escrow it offline (see [SECURITY.md](SECURITY.md)).
+Create an admin identity (OIDC or userpass + MFA per org standard), grant a tightly scoped admin policy, then **revoke the root token**. Recovery keys remain for disaster seal operations only ([SECURITY.md](SECURITY.md)).
+
+Join remaining nodes if not already peered; verify `vault operator raft list-peers` shows all voters.
 
 ---
 
 ## 4. Enable secrets engines
 
 ```bash
-# KV v2 at secret/
 vault secrets enable -path=secret kv-v2
-
-# SSH engine
 vault secrets enable -path=ssh ssh
-
-# Optional PKI
-# vault secrets enable -path=pki pki
-# vault secrets tune -max-lease-ttl=8760h pki
+# Optional later: vault secrets enable -path=pki pki
 ```
 
-Or run:
-
-```bash
-../scripts/02-enable-engines.sh
-```
+Tune TTLs on the SSH mount as you define roles (see §8).
 
 ---
 
-## 5. Path layout & sample secrets
+## 5. Path layout & first production secrets
 
-Full design guide (Strategy A default, alternatives, NetBox/policy alignment): **[PATH_LAYOUT.md](PATH_LAYOUT.md)**.
+Canonical design: **[PATH_LAYOUT.md](PATH_LAYOUT.md)** (Strategy A). Environments are `stage` / `prod` (and optional `lab` for isolated non-prod gear — not a Vault “lab install”).
 
-Write lab samples (replace values):
+Write real secrets through a controlled process (break-glass admin or approved CI write role) — example shape only:
 
 ```bash
 vault kv put secret/platform/netbox \
   api_token="CHANGE_ME_NETBOX_TOKEN"
 
-vault kv put secret/network/lab/dc1/lab-rtr-01/credentials \
+vault kv put secret/network/stage/dc1/rtr-01/credentials \
   username="netops" \
   password="CHANGE_ME" \
   enable_secret="CHANGE_ME"
 
-vault kv put secret/network/lab/shared/netclaw \
-  username="netclaw" \
-  password="CHANGE_ME"
+# Prefer SSH CA over shared agent passwords in prod
+vault kv put secret/network/prod/dc1/rtr-01/credentials \
+  username="netops" \
+  password="CHANGE_ME" \
+  enable_secret="CHANGE_ME"
 ```
 
-Or:
-
-```bash
-../scripts/03-write-sample-secrets.sh
-```
+Do not leave sample passwords in the cluster after cutover validation.
 
 ---
 
 ## 6. Policies
 
+Apply env-scoped policies — never a single identity that can read all of `network/*`:
+
 ```bash
-vault policy write netclaw-read   ../policies/netclaw-read.hcl
-vault policy write gitlab-ci      ../policies/gitlab-ci.hcl
-vault policy write netbox-agent   ../policies/netbox-agent.hcl
-vault policy write netclaw-change ../policies/netclaw-change.hcl
+vault policy write gitlab-ci-stage  ../policies/gitlab-ci.hcl          # adjust paths to stage/
+vault policy write gitlab-ci-prod   ../policies/gitlab-ci-prod.hcl
+vault policy write netclaw-read     ../policies/netclaw-read.hcl
+vault policy write netclaw-change   ../policies/netclaw-change.hcl
+vault policy write ansible-automation ../policies/ansible-automation.hcl
+vault policy write netbox-agent     ../policies/netbox-agent.hcl
 ```
+
+See [policies/README.md](../policies/README.md). Tighten `netclaw-read` for prod paths only after change control.
 
 ---
 
-## 7. Auth methods (summary)
+## 7. Auth methods
 
-### 7a. AppRole for NetClaw / services
+### 7a. AppRole for NetClaw / controllers
 
 ```bash
 vault auth enable approle
@@ -223,19 +259,19 @@ vault write auth/approle/role/netclaw \
   token_policies="netclaw-read" \
   token_ttl=1h \
   token_max_ttl=4h \
-  secret_id_ttl=24h
+  secret_id_ttl=168h \
+  secret_id_num_uses=0 \
+  bind_secret_id=true
 
 vault read auth/approle/role/netclaw/role-id
 vault write -f auth/approle/role/netclaw/secret-id
 ```
 
-Or: `../scripts/04-configure-approle.sh`
+Deliver `role_id` + `secret_id` via your secret-distribution process (not Git). Rotate `secret_id` on a fixed calendar ([SECURITY.md](SECURITY.md)).
 
-Deliver `role_id` + `secret_id` to the NetClaw host via a secure channel (not Git).
+### 7b. JWT for GitLab CE
 
-### 7b. JWT for GitLab
-
-Full steps: [GITLAB.md](GITLAB.md).
+Full steps: [GITLAB.md](GITLAB.md). Bound claims must separate **stage** vs **prod** roles (`ref_protected`, `project_path`, environment).
 
 ```bash
 vault auth enable jwt
@@ -245,53 +281,30 @@ vault write auth/jwt/config \
   bound_issuer="https://gitlab.example.local"
 ```
 
+Vault must trust GitLab’s TLS CA for discovery/JWKS.
+
+### 7c. OIDC for humans / Dev Containers
+
+Prefer OIDC (or LDAP) for engineers — not shared AppRoles and never root. See [DEVCONTAINERS.md](DEVCONTAINERS.md).
+
 ---
 
-## 8. SSH engine (pilot → CA mode)
+## 8. SSH CA (production default)
 
-Full operations guide (ClearPass, bastions, verification): **[SSH_CA.md](SSH_CA.md)**.
+Full operations: **[SSH_CA.md](SSH_CA.md)**. **Do not** use OTP mode for production automation; use **CA mode** with short TTLs.
 
-The SSH secrets engine can run in **OTP** or **CA** mode. For NetClaw / Ansible at scale, plan on **CA mode**. OTP is only a quick lab stepping stone.
+| System | Issues | Use for |
+|--------|--------|---------|
+| **Vault SSH CA** | OpenSSH certificates | NetClaw / Ansible / runners → bastions (and capable NOS) |
+| **ClearPass Onboard** | X.509 | 802.1X / NAC / device TLS — **not** SSH CA |
 
-### 8.1 Important: Vault SSH CA ≠ ClearPass certificates
-
-| System | What it issues | Use for |
-|--------|----------------|---------|
-| **Vault SSH CA** | OpenSSH **SSH certificates** (user/host) | Automation SSH (NetClaw, Ansible, jump hosts) |
-| **HPE ClearPass Onboard** (your current path) | **X.509** certs (client/server) via onboard / **SCEP** / **EST** | 802.1X / NAC, many device TLS identities |
-
-**Can ClearPass Onboard be used for server certificates?**  
-**Yes** — Onboard’s CA can issue **X.509 server and client** certificates (Root, Intermediate under enterprise PKI, or Imported CA). That is appropriate for HTTPS/management TLS and NAC-related identities when the device enrolls via SCEP/EST or Onboard provisioning.
-
-**Can ClearPass replace Vault SSH CA mode?**  
-**No.** `sshd` `TrustedUserCAKeys` expects Vault’s **SSH CA public key**, not a ClearPass X.509 cert. Keep ClearPass for X.509/NAC; use Vault for SSH certificate signing. See [SSH_CA.md](SSH_CA.md).
-
-### 8.2 OTP mode (fastest pilot only)
-
-```bash
-vault write ssh/roles/netclaw-troubleshoot \
-  key_type=otp \
-  default_user=netops \
-  cidr_list=10.0.0.0/8
-```
-
-Install `vault-sshhelper` (or equivalent) on the target so each login validates an OTP **against Vault** (device typically needs reachability to Vault at auth time). Prefer CA mode when that is awkward for network devices.
-
-### 8.3 CA mode (preferred long-term)
-
-**Concept:** Vault holds an SSH signing CA. You install only the **CA public key** on trusted hosts. Clients ask Vault to **sign** their SSH public key for a short TTL and allowed principals (e.g. `netops`). No shared password; no device callback to Vault at SSH time.
-
-#### A. Create the SSH CA in Vault
+### 8.1 Create CA and roles
 
 ```bash
 vault write ssh/config/ca generate_signing_key=true
 vault read -field=public_key ssh/config/ca > /tmp/vault-ssh-ca.pub
-# Escrow/backup of CA private material is a ceremony — treat like a root key ([SSH_CA.md](SSH_CA.md))
-```
+# Escrow CA private material per ceremony — treat as a root of trust
 
-#### B. Define roles (separate troubleshoot vs change)
-
-```bash
 vault write ssh/roles/netclaw-troubleshoot \
   key_type=ca \
   algorithm_signer=rsa-sha2-256 \
@@ -313,97 +326,67 @@ vault write ssh/roles/netclaw-change \
   max_ttl=30m
 ```
 
-Map policies so NetClaw **read** may `ssh/sign/netclaw-troubleshoot` only; change role stays approval-gated ([SECURITY.md](SECURITY.md)).
+### 8.2 Trust on bastions (zero-touch)
 
-#### C. Trust the CA on OpenSSH targets (bastions / Linux)
+Distribute **only** the CA public key via golden image and/or NetBox→GitLab→Ansible ([SSH_CA.md](SSH_CA.md), [`../examples/ssh-ca-zero-touch/`](../examples/ssh-ca-zero-touch/)). Issue user certs at connect time — never bake user certs into images.
 
-```bash
-# On each jump host (example)
-sudo cp /tmp/vault-ssh-ca.pub /etc/ssh/vault-ssh-ca.pub
-# sshd_config:
-#   TrustedUserCAKeys /etc/ssh/vault-ssh-ca.pub
-sudo systemctl reload sshd
-```
+### 8.3 Acceptance
 
-**Network OS note:** many routers/switches lack OpenSSH user-certificate support. Pilot on **Linux bastions** first; for unsupported NOS, SSH to a Vault-CA bastion, then use vendor auth (or KV secrets) to the device ([SSH_CA.md](SSH_CA.md)).
-
-#### D. Issue a user certificate (from CI / NetClaw host)
-
-```bash
-ssh-keygen -t ed25519 -f /tmp/netclaw_id -N ""
-vault write -field=signed_key ssh/sign/netclaw-troubleshoot \
-  public_key=@/tmp/netclaw_id.pub \
-  valid_principals=netops \
-  ttl=30m > /tmp/netclaw_id-cert.pub
-
-ssh -i /tmp/netclaw_id \
-  -o CertificateFile=/tmp/netclaw_id-cert.pub \
-  -o IdentitiesOnly=yes \
-  netops@jump.example.local
-```
-
-Wire the same sign step after GitLab JWT or NetClaw AppRole login so playbooks/agents never store long-lived SSH private keys in git.
-
-### 8.4 What to use where (recommendations)
-
-1. **ClearPass Onboard** — keep for X.509: 802.1X, onboard, and **server/client TLS** enrollment (SCEP/EST) for appliances that already fit that process.
-2. **Vault SSH CA** — NetClaw, Ansible, GitLab runners SSH to bastions (and to devices that support SSH certs).
-3. **Vault PKI engine** (optional later) — short-lived X.509 for services you want Vault to mint via API when ClearPass/enterprise PKI is not the right enrollment path.
-4. **Enterprise PKI** — if ClearPass Onboard is Intermediate under a corporate root, keep that chain for NAC/TLS; do not put the SSH CA under that same X.509 tree.
-5. **Bastion pattern** — default recommendation when device SSH cert support is incomplete.
-6. **Short TTLs + dual roles** — troubleshoot vs change; audit every `ssh/sign`.
-
-### 8.5 Zero-touch seeding (new systems, no human SSH)
-
-**Best method for this stack:** treat the Vault SSH CA **public** key as a trust anchor in git (or CI-fetched), and apply it with **NetBox-driven Ansible from GitLab CE** when a device/VM is `staged` — optionally bake the same pubkey into Linux **golden images**. Issue **user** certs only at connect time (`ssh/sign/...`); never bake user certs into images.
-
-Do **not** use ClearPass to seed SSH CA trust. Details, host-cert auto-enrollment, and anti-patterns: **[SSH_CA.md](SSH_CA.md)** · examples: [`../examples/ssh-ca-zero-touch/`](../examples/ssh-ca-zero-touch/).
-
-### 8.6 Acceptance for this step
-
-- [ ] SSH CA created; public key distributed to at least one lab bastion
-- [ ] Successful SSH with a Vault-signed user cert (OTP path optional)
-- [ ] Documented decision: ClearPass for X.509/server TLS; Vault for SSH CA
-- [ ] NetBox `vault_ssh_role` planned alongside `vault_path` ([NETBOX.md](NETBOX.md))
-- [ ] Zero-touch path defined (golden image and/or NetBox→GitLab→Ansible) with no interactive engineer SSH
+- [ ] SSH CA created; pubkey on production bastions (and stage)
+- [ ] Successful SSH with Vault-signed user cert; TTL ≤ 30m
+- [ ] Documented split: ClearPass = X.509; Vault = SSH CA
+- [ ] NetBox `vault_ssh_role` alongside `vault_path` ([NETBOX.md](NETBOX.md))
+- [ ] Zero-touch seeding with no interactive engineer SSH for new hosts
 
 ---
 
-## 9. Verify
+## 9. Verify HA, health, and backup
 
 ```bash
 vault status
+vault operator raft list-peers
 vault secrets list
 vault policy list
-vault kv get secret/platform/netbox
 vault audit list
+vault kv get secret/platform/netbox
 ```
 
-From a Runner host / NetClaw host:
+From each consumer network path (Runner, NetClaw, admin jump):
 
 ```bash
 curl -sS --cacert /path/to/ca.crt "$VAULT_ADDR/v1/sys/health"
 ```
 
+**Backup / DR (required before cutover):**
+
+```bash
+# On the active node — schedule via systemd timer or orchestration
+vault operator raft snapshot save /var/backups/vault/raft-$(date -u +%Y%m%dT%H%M%SZ).snap
+```
+
+- Store snapshots encrypted off-box; define RPO/RTO
+- Run a **restore drill** on an isolated cluster before declaring production ready ([WORKPLAN.md](WORKPLAN.md) Phase 7)
+- Alert on seal status, peer loss, audit disk, 5xx rates, auth failure spikes
+
 ---
 
 ## 10. Next steps
 
-Continue the reading path from [Documentation home](README.md):
+Continue from [Documentation home](README.md):
 
-1. [PATH_LAYOUT.md](PATH_LAYOUT.md) — adopt Strategy A before writing more secrets
-2. [GITLAB.md](GITLAB.md) — CE: JWT + Vault CLI (Premium `secrets:vault` optional)
+1. [PATH_LAYOUT.md](PATH_LAYOUT.md) — lock Strategy A for `stage` / `prod`
+2. [GITLAB.md](GITLAB.md) — JWT + Vault CLI; separate stage/prod roles
 3. [ANSIBLE.md](ANSIBLE.md) → [DEVCONTAINERS.md](DEVCONTAINERS.md) → [NETBOX.md](NETBOX.md)
 4. [NETCLAW.md](NETCLAW.md) → [MODELS.md](MODELS.md) → [LOCAL_LLM.md](LOCAL_LLM.md) → [SSH_CA.md](SSH_CA.md)
-5. [WORKPLAN.md](WORKPLAN.md) Phase 6–7 for SSH rollout and ops checklist
+5. [WORKPLAN.md](WORKPLAN.md) Phase 6–7 for SSH fleet rollout and operate checklist
 
 ---
 
-## Rollback / break-glass
+## Break-glass
 
-- If Vault is sealed: unseal with threshold key shares from escrow
-- If Vault is down: automation must **fail closed** (no fallback to plaintext env files in prod)
-- Emergency device access: offline break-glass credentials in a physical/enterprise PAM process — not in Git
+- Sealed cluster: auto-unseal recovery / KMS access per runbook; recovery keys for disaster only
+- Vault unavailable: automation **fails closed** — no plaintext env/file fallback
+- Emergency device access: offline enterprise PAM / break-glass — not Git, not NetBox password fields
 
 <!-- doc-footer:start -->
 ---

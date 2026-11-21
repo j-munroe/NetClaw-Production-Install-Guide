@@ -7,9 +7,9 @@
 
 ## Goal
 
-Replace static GitLab CI variables, Ansible Vault files, Dev Container `.env` secrets, and other ad-hoc credential stores with **HashiCorp Vault** as the single secrets system of record for network troubleshooting automation and NetClaw agents.
+Replace static GitLab CI variables, Ansible Vault files, Dev Container `.env` secrets, and other ad-hoc credential stores with a **production-grade HashiCorp Vault cluster** as the single secrets system of record for network troubleshooting automation and NetClaw agents.
 
-This workplan is the **delivery checklist**. For concepts first, read [ARCHITECTURE](ARCHITECTURE.md) and [SECURITY](SECURITY.md). For the full doc map, see [Documentation home](README.md).
+This workplan is the **delivery checklist**. Concepts: [ARCHITECTURE](ARCHITECTURE.md), [SECURITY](SECURITY.md). Doc map: [Documentation home](README.md).
 
 ## Current state (baseline)
 
@@ -18,13 +18,13 @@ This workplan is the **delivery checklist**. For concepts first, read [ARCHITECT
 - VS Code Dev Containers that need the same secrets locally
 - NetBox Community (inventory SoT)
 - Credentials likely in CI variables, local files, or device shared accounts
-- Target: NetClaw for advanced agentic troubleshooting
+- Target: NetClaw for advanced agentic troubleshooting against **production** network gear (with stage validation first)
 
 ## Target state
 
 ```mermaid
 flowchart TB
-  V[(HashiCorp Vault — secrets SoT)]
+  V[(Vault HA — secrets SoT)]
   GL[GitLab JWT] --> V
   AN[Ansible lookups] --> V
   DC[Dev Container] --> V
@@ -37,10 +37,11 @@ flowchart TB
 **Rules**
 
 1. Vault holds secrets; NetBox holds inventory + optional Vault *path* references.
-2. Prefer short-lived SSH certs/OTP over static passwords for agents.
-3. Separate **read/troubleshoot** vs **change/write** Vault policies.
-4. Every secret read is audited.
+2. Prefer short-lived **SSH certificates** over static passwords for agents.
+3. Separate **read/troubleshoot** vs **change/write** Vault policies; separate **stage** vs **prod** CI roles.
+4. Every secret read is audited and shipped to SIEM.
 5. Same Vault **paths** for CI Ansible and Dev Container Ansible; different **auth** identities.
+6. Consumers **fail closed** when Vault is down.
 
 ---
 
@@ -48,19 +49,19 @@ flowchart TB
 
 **Outcomes**
 
-- [ ] Choose Vault edition: **OSS/Community latest** (start here; currently 2.x) or Enterprise — [VERSIONS.md](VERSIONS.md)
-- [ ] Plan package versions as **latest stable** (Vault, Ollama, Ansible collection, runners); pin only after lab validation
-- [ ] Choose HA: single node (lab) vs Raft/Consul (prod)
-- [ ] Choose auth methods: **JWT** (GitLab), **AppRole** (NetClaw/Ansible controllers), **OIDC** (humans / Dev Containers)
-- [ ] Choose NetClaw **Main** LLM: Claude (recommended), OpenAI (if mandated), or local (air-gap) — see [MODELS.md](MODELS.md)
-- [ ] If using local: install Ollama + `qwen3:30b` / `qwen3:8b` — see [LOCAL_LLM.md](LOCAL_LLM.md)
-- [ ] Confirm TLS: internal CA or public cert for `VAULT_ADDR`
-- [ ] Confirm network path: Runners, NetBox host, NetClaw host → Vault:8200
+- [ ] Choose Vault edition: **OSS/Community** (pinned 2.x) or Enterprise — [VERSIONS.md](VERSIONS.md)
+- [ ] Commit to **3+ node Raft HA**, TLS from enterprise/internal CA, **auto-unseal**
+- [ ] Pin package/image versions via change control (no `:latest` in prod)
+- [ ] Choose auth: **JWT** (GitLab), **AppRole** (NetClaw/controllers), **OIDC** (humans / Dev Containers)
+- [ ] Choose NetClaw **Main** LLM: Claude (recommended), OpenAI (if mandated), or local (air-gap) — [MODELS.md](MODELS.md)
+- [ ] If local: production Ollama host + pinned models — [LOCAL_LLM.md](LOCAL_LLM.md)
+- [ ] Confirm network path: Runners, NetBox, NetClaw, admins → Vault VIP:8200
+- [ ] Define RPO/RTO for Raft snapshot restore
 
 **Acceptance**
 
-- Written architecture sign-off (see [ARCHITECTURE.md](ARCHITECTURE.md))
-- Host sizing: 2 vCPU / 4 GB RAM minimum for lab; prod per HashiCorp guidance + disk for audit logs
+- Written architecture + security sign-off
+- Host sizing ≥ HashiCorp guidance for expected QPS + audit retention ([INSTALL.md](INSTALL.md))
 
 ---
 
@@ -68,19 +69,21 @@ flowchart TB
 
 **Tasks**
 
-- [ ] Install Vault (package or container) on dedicated host/VM
-- [ ] Enable TLS listener
-- [ ] Initialize + unseal (store keys in break-glass procedure, not Git)
-- [ ] Enable audit device (`file` or `socket`)
-- [ ] Disable root token for day-2 ops; create admin identity
+- [ ] Install pinned Vault on 3+ dedicated nodes
+- [ ] Configure Raft + TLS listeners; VIP / LB health checks
+- [ ] Configure auto-unseal; init; escrow recovery keys + root
+- [ ] Enable audit; ship logs off-box
+- [ ] Create admin identity; **revoke root**
+- [ ] Schedule Raft snapshots; run restore drill on isolated cluster
 
 **Acceptance**
 
-- `vault status` shows sealed=false, HA healthy (if clustered)
-- Audit log receives a test read
-- Root token revoked or escrowed offline
+- `vault status` sealed=false; `raft list-peers` shows all voters
+- Auto-unseal survives node reboot without human Shamir
+- Audit receives a test read in SIEM
+- Successful snapshot restore drill recorded
 
-**Guide:** [INSTALL.md](INSTALL.md) §1–3
+**Guide:** [INSTALL.md](INSTALL.md) §0–3, §9
 
 ---
 
@@ -91,8 +94,8 @@ flowchart TB
 | Mount | Engine | Purpose |
 |-------|--------|---------|
 | `secret/` | KV v2 | Static device creds, API tokens, enable secrets |
-| `ssh/` | SSH | Short-lived OTP or signed SSH certs |
-| `pki/` (optional) | PKI | Device/client certs for gNMI/TLS |
+| `ssh/` | SSH CA | Short-lived signed SSH certs |
+| `pki/` (optional) | PKI | Only if ClearPass/enterprise PKI is not the X.509 path |
 
 **Path convention (Strategy A — default)**
 
@@ -103,22 +106,22 @@ ssh/roles/netclaw-troubleshoot
 ssh/roles/netclaw-change
 ```
 
-**Envs:** `lab`, `stage`, `prod`
+**Envs:** `stage`, `prod` (optional isolated `lab` gear — not a Vault install mode)
 
 **Tasks**
 
-- [ ] Choose path strategy (A recommended; C for mount-level lab/prod isolation) — [PATH_LAYOUT.md](PATH_LAYOUT.md)
+- [ ] Lock Strategy A — [PATH_LAYOUT.md](PATH_LAYOUT.md)
 - [ ] Document field names (`username` / `password` / `enable_secret`)
-- [ ] Align NetBox `vault_path` (or derivation rule) with Vault
-- [ ] Write policies that glob by `{env}` (separate lab vs prod identities)
+- [ ] Align NetBox `vault_path` with Vault
+- [ ] Apply separate policies: stage CI, prod CI, NetClaw read/change
 
 **Acceptance**
 
-- Sample secrets written for one lab device + NetBox token
-- Policies in `policies/` applied and tested with a non-root token
+- Stage secrets loaded; prod secrets loaded under change control
+- Policies applied and tested with non-root tokens
 - Team runbook names the chosen strategy
 
-**Guide:** [PATH_LAYOUT.md](PATH_LAYOUT.md) · [INSTALL.md](INSTALL.md) §4–5 · [SECURITY.md](SECURITY.md)
+**Guide:** [PATH_LAYOUT.md](PATH_LAYOUT.md) · [INSTALL.md](INSTALL.md) §4–6 · [SECURITY.md](SECURITY.md)
 
 ---
 
@@ -127,16 +130,16 @@ ssh/roles/netclaw-change
 **Tasks**
 
 - [ ] Confirm edition: **CE** → JWT + Vault CLI; Premium+ may use `secrets:vault`
-- [ ] Configure Vault JWT auth for GitLab issuer
-- [ ] Bound claims: project path, protected branches, environment
-- [ ] Example `.gitlab-ci.yml` with `id_tokens` + Vault CLI login (CE) — see [GITLAB.md](GITLAB.md)
-- [ ] Migrate one pipeline off CI-stored passwords
-- [ ] Ensure MR pipelines cannot read `prod/` paths
+- [ ] Configure Vault JWT auth for GitLab issuer (Vault trusts GitLab CA)
+- [ ] Separate JWT roles: stage vs prod (`ref_protected`, environment claims)
+- [ ] Example `.gitlab-ci.yml` with `id_tokens` + Vault CLI — [GITLAB.md](GITLAB.md)
+- [ ] Migrate pipelines off CI-stored passwords
+- [ ] Ensure MR pipelines cannot read `prod/`
 
 **Acceptance**
 
-- Protected-branch job reads `secret/network/lab/...` successfully on CE without `secrets:vault`
-- Unprotected/MR job denied for `prod/`
+- Protected-branch stage job reads `secret/network/stage/...` on CE
+- Prod role works only on protected prod refs; MR denied for `prod/`
 - No device password visible in job logs
 
 **Guide:** [GITLAB.md](GITLAB.md)
@@ -147,18 +150,19 @@ ssh/roles/netclaw-change
 
 **Tasks**
 
-- [ ] Inventory Ansible Vault files, plaintext creds, and CI password variables per repo
-- [ ] Install `community.hashi_vault` (+ `hvac`) in CI images and Dev Containers
-- [ ] Introduce plaintext `vault_paths.yml`; switch one lab playbook to `vault_kv2_get`
-- [ ] Wire GitLab JWT → `VAULT_TOKEN` (or `secrets:vault` files) for Ansible jobs
-- [ ] Apply `no_log: true` on credential-sensitive tasks; remove Ansible Vault after lab sign-off
+- [ ] Inventory Ansible Vault files, plaintext creds, and CI password variables
+- [ ] Pin `community.hashi_vault` + `hvac` in CI images and Dev Containers
+- [ ] Introduce plaintext `vault_paths.yml`; switch playbooks to `vault_kv2_get`
+- [ ] Wire GitLab JWT → `VAULT_TOKEN` for Ansible jobs
+- [ ] Apply `no_log: true`; remove Ansible Vault after stage sign-off; then prod
 
 **Acceptance**
 
-- Lab playbook runs in CI with **no** Ansible Vault password and **no** device password CI variables
+- Stage playbook in CI with **no** Ansible Vault password and **no** device password CI variables
+- Prod playbook uses prod JWT role only
 - Vault audit shows JWT/AppRole identity on secret reads
 
-**Guide:** [ANSIBLE.md](ANSIBLE.md) · examples in `examples/ansible/`
+**Guide:** [ANSIBLE.md](ANSIBLE.md) · `examples/ansible/`
 
 ---
 
@@ -167,17 +171,17 @@ ssh/roles/netclaw-change
 **Tasks**
 
 - [ ] Strip secrets from `.env`, Dockerfile, and `devcontainer.json`
-- [ ] Pass `VAULT_ADDR` / `VAULT_TOKEN` via `remoteEnv` + optional `~/.vault-token` mount
+- [ ] Pass `VAULT_ADDR` / token via `remoteEnv` + OIDC host login
 - [ ] Document host `vault login` (OIDC) before “Reopen in Container”
-- [ ] Smoke-test: same lab playbook as CI, using engineer identity (not CI JWT)
+- [ ] Smoke-test: same playbooks as CI, using engineer identity (not CI JWT)
 
 **Acceptance**
 
 - Container rebuild works with empty git tree for secrets
-- Missing token fails closed (no plaintext fallback)
-- Audit distinguishes human/dev AppRole from CI JWT
+- Missing token fails closed
+- Audit distinguishes human OIDC from CI JWT
 
-**Guide:** [DEVCONTAINERS.md](DEVCONTAINERS.md) · examples in `examples/devcontainer/`
+**Guide:** [DEVCONTAINERS.md](DEVCONTAINERS.md)
 
 ---
 
@@ -185,9 +189,9 @@ ssh/roles/netclaw-change
 
 **Tasks**
 
-- [ ] Create dedicated NetBox API token (least privilege); store in Vault
-- [ ] Add custom field or tag convention for `vault_path` on devices/roles
-- [ ] (Optional) Configure Orb Agent / discovery `secrets_manager: vault`
+- [ ] Create dedicated NetBox API token; store in Vault
+- [ ] Add `vault_path` (and optional `vault_ssh_role`) convention
+- [ ] (Optional) Orb Agent `secrets_manager: vault`
 - [ ] Document: NetBox UI never stores plaintext device passwords
 
 **Acceptance**
@@ -203,42 +207,40 @@ ssh/roles/netclaw-change
 
 **Tasks**
 
-- [ ] Select Main / Fallback / Compaction models ([MODELS.md](MODELS.md)); store provider API keys outside git
-- [ ] If local or hybrid: Ollama up, models pulled, NetClaw provider healthy ([LOCAL_LLM.md](LOCAL_LLM.md))
-- [ ] Install/register HashiCorp `vault-mcp-server`
-- [ ] Auth NetClaw with **AppRole** (preferred) or short-lived token
-- [ ] Apply `policies/netclaw-read.hcl` (and separate change policy)
-- [ ] Configure `VAULT_ADDR` / role-id / secret-id injection (not long-lived root)
-- [ ] Verify secrets are **injected**, never echoed in chat/logs
-- [ ] Wire DefenseClaw / approval gates for write + change-role use
+- [ ] Select Main / Fallback / Compaction models ([MODELS.md](MODELS.md)); store API keys outside git
+- [ ] If local/hybrid: production Ollama + pinned models ([LOCAL_LLM.md](LOCAL_LLM.md))
+- [ ] Register HashiCorp `vault-mcp-server`
+- [ ] Auth with **AppRole**; apply `netclaw-read` (stage first)
+- [ ] Verify secrets are **injected**, never echoed
+- [ ] Wire DefenseClaw / approval for write + `netclaw-change`
+- [ ] Explicit change control before enabling `prod/` reads
 
 **Acceptance**
 
-- NetClaw can list secret *paths* and connect to one lab device using Vault-sourced creds
+- NetClaw connects to stage devices using Vault-sourced creds or SSH certs
 - Chat/UI shows redacted values only
 - Vault audit shows agent identity on each read
-- Lab troubleshoot succeeds on the chosen Main model
+- Prod path access only after sign-off
 
 **Guide:** [NETCLAW.md](NETCLAW.md) · [MODELS.md](MODELS.md) · [LOCAL_LLM.md](LOCAL_LLM.md)
 
 ---
 
-## Phase 6 — SSH modernization (recommended)
+## Phase 6 — SSH modernization
 
 **Tasks**
 
-- [ ] Enable SSH secrets engine; prefer **CA mode** over OTP for scale ([INSTALL.md](INSTALL.md) §8, [SSH_CA.md](SSH_CA.md))
-- [ ] Keep **ClearPass Onboard** for X.509 / NAC / device TLS (SCEP/EST); do not use it as SSH CA
-- [ ] Decide server TLS source: ClearPass/enterprise PKI vs optional Vault PKI
-- [ ] Deploy Vault SSH CA public key on lab bastions (`TrustedUserCAKeys`); bastion pattern for NOS without SSH certs
-- [ ] Implement **zero-touch** CA trust seeding (golden image and/or NetBox→GitLab→Ansible) — [SSH_CA.md](SSH_CA.md)
-- [ ] NetClaw / runners request short-lived signed certs per session (not baked into images)
+- [ ] Enable SSH secrets engine in **CA mode** ([INSTALL.md](INSTALL.md) §8, [SSH_CA.md](SSH_CA.md))
+- [ ] Keep **ClearPass Onboard** for X.509 / NAC / device TLS — not as SSH CA
+- [ ] Deploy Vault SSH CA public key on stage then prod bastions
+- [ ] Implement **zero-touch** CA trust seeding (golden image and/or NetBox→GitLab→Ansible)
+- [ ] NetClaw / runners request short-lived signed certs per session
 - [ ] Retire shared static passwords where possible
 
 **Acceptance**
 
-- Lab bastion (or capable device) login works with Vault-signed SSH cert; TTL ≤ 30 minutes
-- New lab host trusts SSH CA with **no** interactive engineer SSH
+- Bastion login with Vault-signed SSH cert; TTL ≤ 30 minutes
+- New host trusts SSH CA with **no** interactive engineer SSH
 - Written split: ClearPass = X.509; Vault = SSH CA
 - Static password path marked deprecated
 
@@ -248,15 +250,16 @@ ssh/roles/netclaw-change
 
 **Tasks**
 
-- [ ] Rotation runbook (NetBox token, AppRole secret-id, device creds)
-- [ ] Alert on Vault seal, audit disk full, auth failures
-- [ ] Backup Raft/snapshots + restore drill
+- [ ] Rotation runbook (NetBox token, AppRole secret-id, device creds, TLS)
+- [ ] Alert on seal, peer loss, audit disk, auth failures, prod read spikes
+- [ ] Backup Raft snapshots + restore drill cadence
 - [ ] Quarterly policy review (prod change role membership)
 
 **Acceptance**
 
 - Documented RTO for Vault restore
 - Successful restore drill recorded
+- On-call playbooks published
 
 ---
 
@@ -264,7 +267,7 @@ ssh/roles/netclaw-change
 
 ```mermaid
 flowchart LR
-  P0[0 Decisions] --> P1[1 Install]
+  P0[0 Decisions] --> P1[1 HA Install]
   P1 --> P2[2 Engines / paths]
   P2 --> P3[3 GitLab]
   P2 --> P3b[3b Ansible]
@@ -281,7 +284,7 @@ flowchart LR
 | Order | Phase | Depends on |
 |------:|-------|------------|
 | 1 | 0 Decisions | — |
-| 2 | 1 Install | 0 |
+| 2 | 1 Install (HA) | 0 |
 | 3 | 2 Engines/paths | 1 |
 | 4 | 3 GitLab | 2 |
 | 5 | 3b Ansible | 2–3 |
@@ -291,25 +294,26 @@ flowchart LR
 | 9 | 6 SSH engine | 5 |
 | 10 | 7 Operate | 3–6 |
 
-Phases 3 / 3b / 4 can overlap after Phase 2. Do 3c once lab Vault paths exist so local and CI stay aligned.
+Promote **stage → prod** for each consumer after audit review. Phases 3 / 3b / 4 can overlap after Phase 2.
 
 ---
 
 ## Out of scope (for later)
 
-- CyberArk / enterprise PAM session recording (if mandated, put in front of human break-glass; keep Vault for automation)
-- Multi-datacenter Vault Enterprise replication
-- Full device fleet CA rollout (pilot first)
+- CyberArk / enterprise PAM session recording (if mandated, front human break-glass; keep Vault for automation)
+- Vault Enterprise performance/DR replication (evaluate if multi-site RPO requires it)
+- Full device-fleet SSH cert support on every NOS (bastion pattern covers gaps)
 
 ---
 
 ## Success metrics
 
 - Zero production device passwords in GitLab CI variables
-- Zero Ansible Vault / committed `.env` passwords required for lab (then prod) playbooks
+- Zero Ansible Vault / committed `.env` passwords required for stage or prod playbooks
 - Dev Containers run the same playbooks using Vault auth (no secrets in the image)
 - 100% of NetClaw device access audited in Vault
-- Separate policies for troubleshoot vs change
+- Separate policies for troubleshoot vs change and stage vs prod
+- HA Raft peers healthy; restore drill within documented RTO
 - Time-to-rotate NetBox API token &lt; 15 minutes (procedure only; no code deploy)
 
 <!-- doc-footer:start -->

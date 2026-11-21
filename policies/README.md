@@ -6,18 +6,20 @@ Example HCL for this stack. Apply after engines/paths exist ([INSTALL](../docs/I
 
 | File | Intended identity |
 |------|-------------------|
-| [gitlab-ci.hcl](gitlab-ci.hcl) | GitLab JWT lab automation |
+| [gitlab-ci.hcl](gitlab-ci.hcl) | GitLab JWT — **stage** (optional `lab`) |
+| [gitlab-ci-prod.hcl](gitlab-ci-prod.hcl) | GitLab JWT — **prod** (protected branches only) |
 | [ansible-automation.hcl](ansible-automation.hcl) | Ansible CI / controller |
-| [netclaw-read.hcl](netclaw-read.hcl) | NetClaw troubleshoot (default) |
-| [netclaw-change.hcl](netclaw-change.hcl) | NetClaw change window (gated) |
+| [netclaw-read.hcl](netclaw-read.hcl) | NetClaw troubleshoot (stage first; prod gated) |
+| [netclaw-change.hcl](netclaw-change.hcl) | NetClaw change window (approval-gated) |
 | [netbox-agent.hcl](netbox-agent.hcl) | Orb / discovery agent |
 
 ```bash
 vault policy write gitlab-ci policies/gitlab-ci.hcl
+vault policy write gitlab-ci-prod policies/gitlab-ci-prod.hcl
 vault policy write ansible-automation policies/ansible-automation.hcl
 vault policy write netclaw-read policies/netclaw-read.hcl
 vault policy write netclaw-change policies/netclaw-change.hcl
 vault policy write netbox-agent policies/netbox-agent.hcl
 ```
 
-Lab seed script also loads these: [../scripts/03-write-sample-secrets.sh](../scripts/03-write-sample-secrets.sh).
+Bind **separate JWT / AppRole roles** to stage vs prod policies — never one role that can read all of `network/*`.

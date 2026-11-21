@@ -3,9 +3,9 @@
 # Copy to group_vars/all/vault_paths.yml in your playbook repo.
 
 vault_mount: secret
-credential_env: lab
+credential_env: stage
 
-# Per-host path: secret/network/lab/<site>/<inventory_hostname>/credentials
+# Per-host path: secret/network/stage/<site>/<inventory_hostname>/credentials
 # Override site via host_vars or NetBox-driven inventory plugins.
 vault_site: dc1
 device_cred_path: "network/{{ credential_env }}/{{ vault_site }}/{{ inventory_hostname }}/credentials"
