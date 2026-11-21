@@ -7,7 +7,7 @@
 
 **DefenseClaw** ([cisco-ai-defense/defenseclaw](https://github.com/cisco-ai-defense/defenseclaw), Apache-2.0) is the open-source **security governance** layer for NetClaw / OpenClaw: scan skills and MCPs before use, inspect model and tool traffic at runtime, and export audit evidence. Pair it with **HashiCorp Vault** (secrets SoT) and optional **NVIDIA OpenShell** (sandbox isolation).
 
-This guide fits the same production stack as the rest of this repo: GitLab CE, Ansible, NetBox, Dev Containers, Vault HA, SSH CA, Claude/OpenAI/local models.
+This guide fits the same production stack as the rest of this repo: GitLab CE, Ansible, NetBox, Dev Containers, Vault HA, SSH CA, Claude/OpenAI/local models. MCP primer: [MCP.md](MCP.md).
 
 Upstream:
 

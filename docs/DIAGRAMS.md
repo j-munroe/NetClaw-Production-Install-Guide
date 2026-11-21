@@ -23,6 +23,7 @@ Mermaid diagrams render on GitHub. Each guide embeds diagrams in context; this p
 | 3 Integrate | Ansible lookups | Auth → modules | [ANSIBLE.md](ANSIBLE.md) |
 | 3 Integrate | Dev Containers | Host → container | [DEVCONTAINERS.md](DEVCONTAINERS.md) |
 | 3 Integrate | NetBox resolve | Sequence | [NETBOX.md](NETBOX.md) |
+| 4 Agent | MCP basics | Host ↔ server ↔ tool sequence | [MCP.md](MCP.md) |
 | 4 Agent | NetClaw + Vault | Inject-only flow | [NETCLAW.md](NETCLAW.md) |
 | 4 Agent | DefenseClaw + Vault | Scan / guard / change gate | [DEFENSECLAW.md](DEFENSECLAW.md) |
 | 4 Agent | Model roles | Main / Fallback / Compaction | [MODELS.md](MODELS.md) |

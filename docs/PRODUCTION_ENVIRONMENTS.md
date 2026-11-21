@@ -9,7 +9,7 @@ How NetClaw reaches **your** production controllers, NMS, DDI, edge, and IOS-XR 
 
 Upstream NetClaw already ships first-class MCP/skills for some of these (CloudVision, Cloudflare, Zabbix, Prisma/SASE-style Palo Alto APIs, pyATS/SSH). Others use the same pattern: **API token in Vault → MCP or skill → DefenseClaw register/scan → stage then prod**.
 
-Related: [NETCLAW.md](NETCLAW.md) · [DEFENSECLAW.md](DEFENSECLAW.md) · [PATH_LAYOUT.md](PATH_LAYOUT.md) · [SSH_CA.md](SSH_CA.md) · [BEST_PRACTICES.md](BEST_PRACTICES.md)
+Related: [MCP.md](MCP.md) · [NETCLAW.md](NETCLAW.md) · [DEFENSECLAW.md](DEFENSECLAW.md) · [PATH_LAYOUT.md](PATH_LAYOUT.md) · [SSH_CA.md](SSH_CA.md) · [BEST_PRACTICES.md](BEST_PRACTICES.md)
 
 ---
 

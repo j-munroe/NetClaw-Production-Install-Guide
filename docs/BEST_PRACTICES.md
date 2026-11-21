@@ -149,7 +149,18 @@ Guide: [NETBOX.md](NETBOX.md)
 
 ---
 
-## 10. NetClaw + Vault MCP
+## 10. MCP (Model Context Protocol)
+
+Guide: [MCP.md](MCP.md)
+
+- Treat MCP as the tool plumbing; Vault holds secrets; DefenseClaw governs calls.
+- Register servers via `mcpServers` (stdio `command`/`args`/`env`); never commit live tokens in JSON.
+- Start with `vault-mcp`; scan with DefenseClaw; smoke-test with redacted prompts only.
+- Log MCP servers to stderr only — stdout is the protocol channel.
+
+---
+
+## 11. NetClaw + Vault MCP
 
 Guide: [NETCLAW.md](NETCLAW.md)
 
@@ -162,7 +173,7 @@ Guide: [NETCLAW.md](NETCLAW.md)
 
 ---
 
-## 11. DefenseClaw (+ optional OpenShell)
+## 12. DefenseClaw (+ optional OpenShell)
 
 Guide: [DEFENSECLAW.md](DEFENSECLAW.md)
 
@@ -178,7 +189,7 @@ Guide: [DEFENSECLAW.md](DEFENSECLAW.md)
 
 ---
 
-## 12. Models (Claude / OpenAI / local)
+## 13. Models (Claude / OpenAI / local)
 
 Guide: [MODELS.md](MODELS.md)
 
@@ -190,7 +201,7 @@ Guide: [MODELS.md](MODELS.md)
 
 ---
 
-## 13. Local LLM (Ollama)
+## 14. Local LLM (Ollama)
 
 Guide: [LOCAL_LLM.md](LOCAL_LLM.md)
 
@@ -202,7 +213,7 @@ Guide: [LOCAL_LLM.md](LOCAL_LLM.md)
 
 ---
 
-## 14. Production environments (controllers / NMS / XR)
+## 15. Production environments (controllers / NMS / XR)
 
 Guide: [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md)
 
@@ -214,7 +225,7 @@ Guide: [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md)
 
 ---
 
-## 15. SSH CA, ClearPass, zero-touch
+## 16. SSH CA, ClearPass, zero-touch
 
 Guide: [SSH_CA.md](SSH_CA.md) · [INSTALL.md](INSTALL.md) §8
 
@@ -231,7 +242,7 @@ Guide: [SSH_CA.md](SSH_CA.md) · [INSTALL.md](INSTALL.md) §8
 
 ---
 
-## 16. Policies & examples
+## 17. Policies & examples
 
 Guides: [../policies/README.md](../policies/README.md) · [../examples/README.md](../examples/README.md)
 
@@ -241,7 +252,7 @@ Guides: [../policies/README.md](../policies/README.md) · [../examples/README.md
 
 ---
 
-## 17. Operate & harden (ongoing)
+## 18. Operate & harden (ongoing)
 
 Guide: [WORKPLAN.md](WORKPLAN.md) Phase 7 · [SECURITY.md](SECURITY.md)
 
@@ -272,6 +283,7 @@ Success metrics: zero prod passwords in CI variables; zero committed `.env` devi
 | Ansible | [ANSIBLE.md](ANSIBLE.md) |
 | Dev Containers | [DEVCONTAINERS.md](DEVCONTAINERS.md) |
 | NetBox | [NETBOX.md](NETBOX.md) |
+| MCP basics | [MCP.md](MCP.md) |
 | NetClaw + Vault MCP | [NETCLAW.md](NETCLAW.md) |
 | DefenseClaw | [DEFENSECLAW.md](DEFENSECLAW.md) |
 | Models | [MODELS.md](MODELS.md) |

@@ -2,11 +2,12 @@
 
 <!-- doc-nav:start -->
 > **Hub:** [Documentation home](README.md) · **4. Agent**  
-> ← [NetBox](NETBOX.md) · [DefenseClaw](DEFENSECLAW.md) →
+> ← [MCP](MCP.md) · [DefenseClaw](DEFENSECLAW.md) →
 <!-- doc-nav:end -->
 
 NetClaw integrates with the official Hashicorp **vault-mcp-server** so the agent can retrieve credentials and certificates without embedding secrets in skills or chat.
 
+New to MCP? Start with **[MCP.md](MCP.md)** (what it is and first-time setup).  
 For **DefenseClaw** (open-source scan + runtime guardrails + change gates), see [DEFENSECLAW.md](DEFENSECLAW.md).  
 For **which LLM to use** (Claude vs OpenAI vs local), see [MODELS.md](MODELS.md).  
 For **installing a local LLM** (Ollama + Qwen3), see [LOCAL_LLM.md](LOCAL_LLM.md).  

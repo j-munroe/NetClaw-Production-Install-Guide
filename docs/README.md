@@ -23,7 +23,7 @@ flowchart LR
 | **1. Design** | Trust boundaries, security, delivery, best practices | [ARCHITECTURE](ARCHITECTURE.md) → [SECURITY](SECURITY.md) → [WORKPLAN](WORKPLAN.md) → [BEST_PRACTICES](BEST_PRACTICES.md) |
 | **2. Build** | HA install, pinned versions, path layout | [VERSIONS](VERSIONS.md) → [INSTALL](INSTALL.md) → [PATH_LAYOUT](PATH_LAYOUT.md) |
 | **3. Integrate** | CI, Ansible, Dev Containers, NetBox | [GITLAB](GITLAB.md) → [ANSIBLE](ANSIBLE.md) → [DEVCONTAINERS](DEVCONTAINERS.md) → [NETBOX](NETBOX.md) |
-| **4. Agent** | NetClaw, DefenseClaw, models, SSH CA, prod envs | [NETCLAW](NETCLAW.md) → [DEFENSECLAW](DEFENSECLAW.md) → [MODELS](MODELS.md) → [LOCAL_LLM](LOCAL_LLM.md) → [SSH_CA](SSH_CA.md) → [PRODUCTION_ENVIRONMENTS](PRODUCTION_ENVIRONMENTS.md) |
+| **4. Agent** | MCP basics → NetClaw → DefenseClaw → models → SSH CA → prod envs | [MCP](MCP.md) → [NETCLAW](NETCLAW.md) → [DEFENSECLAW](DEFENSECLAW.md) → [MODELS](MODELS.md) → [LOCAL_LLM](LOCAL_LLM.md) → [SSH_CA](SSH_CA.md) → [PRODUCTION_ENVIRONMENTS](PRODUCTION_ENVIRONMENTS.md) |
 | **5. Reference** | Diagrams, examples, policies, scripts | [DIAGRAMS](DIAGRAMS.md) · [../examples/](../examples/) · [../policies/](../policies/) · [../scripts/](../scripts/) |
 
 ---
@@ -58,6 +58,7 @@ flowchart LR
 
 | Doc | What you get |
 |-----|----------------|
+| [MCP.md](MCP.md) | What MCP is and how to set up your first server |
 | [NETCLAW.md](NETCLAW.md) | Vault MCP, AppRole, redaction |
 | [DEFENSECLAW.md](DEFENSECLAW.md) | Open-source DefenseClaw + optional OpenShell |
 | [MODELS.md](MODELS.md) | Claude vs OpenAI vs local |
@@ -93,6 +94,6 @@ flowchart LR
 2. Deploy HA Vault per [INSTALL](INSTALL.md); complete raft peer check + snapshot restore drill.
 3. Adopt [PATH_LAYOUT](PATH_LAYOUT.md) Strategy A; load `stage` secrets first, then `prod`.
 4. Wire separate GitLab JWT roles ([GITLAB](GITLAB.md)) and one playbook ([ANSIBLE](ANSIBLE.md)).
-5. Enable NetClaw AppRole on stage; wire DefenseClaw observe→action ([NETCLAW](NETCLAW.md), [DEFENSECLAW](DEFENSECLAW.md)).
+5. Learn MCP ([MCP](MCP.md)); enable NetClaw AppRole + Vault MCP; wire DefenseClaw observe→action ([NETCLAW](NETCLAW.md), [DEFENSECLAW](DEFENSECLAW.md)).
 6. Promote prod paths after audit review; roll SSH CA + zero-touch bastion trust ([SSH_CA](SSH_CA.md)).
 7. Connect production platforms per [PRODUCTION_ENVIRONMENTS](PRODUCTION_ENVIRONMENTS.md) (CVaaS, Strata, Central, Cloudflare, XR, …).

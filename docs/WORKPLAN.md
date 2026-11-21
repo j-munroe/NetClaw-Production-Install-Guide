@@ -210,7 +210,7 @@ ssh/roles/netclaw-change
 
 - [ ] Select Main / Fallback / Compaction models ([MODELS.md](MODELS.md)); store API keys outside git
 - [ ] If local/hybrid: production Ollama + pinned models ([LOCAL_LLM.md](LOCAL_LLM.md))
-- [ ] Register HashiCorp `vault-mcp-server`
+- [ ] Read [MCP.md](MCP.md); register HashiCorp `vault-mcp-server` as first MCP
 - [ ] Auth with **AppRole**; apply `netclaw-read` (stage first)
 - [ ] Install **DefenseClaw** (pinned release, checksum-verified); OpenClaw connector; durable sidecar ([DEFENSECLAW.md](DEFENSECLAW.md))
 - [ ] Register + scan `vault-mcp`; guardrails **observe** then **action** on stage

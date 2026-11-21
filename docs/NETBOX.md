@@ -2,7 +2,7 @@
 
 <!-- doc-nav:start -->
 > **Hub:** [Documentation home](README.md) · **3. Integrate**  
-> ← [Dev Containers](DEVCONTAINERS.md) · [NetClaw](NETCLAW.md) →
+> ← [Dev Containers](DEVCONTAINERS.md) · [MCP](MCP.md) →
 <!-- doc-nav:end -->
 
 NetBox remains the **inventory** source of truth. Vault remains the **secrets** source of truth.
