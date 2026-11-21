@@ -23,6 +23,7 @@ Mermaid diagrams render on GitHub. Each guide embeds diagrams in context; this p
 | 3 Integrate | Dev Containers | Host → container | [DEVCONTAINERS.md](DEVCONTAINERS.md) |
 | 3 Integrate | NetBox resolve | Sequence | [NETBOX.md](NETBOX.md) |
 | 4 Agent | NetClaw + Vault | Inject-only flow | [NETCLAW.md](NETCLAW.md) |
+| 4 Agent | DefenseClaw + Vault | Scan / guard / change gate | [DEFENSECLAW.md](DEFENSECLAW.md) |
 | 4 Agent | Model roles | Main / Fallback / Compaction | [MODELS.md](MODELS.md) |
 | 4 Agent | Local LLM | Ollama hybrid | [LOCAL_LLM.md](LOCAL_LLM.md) |
 | 4 Agent | SSH CA / ClearPass / zero-touch | Sequences + flowcharts | [SSH_CA.md](SSH_CA.md) |

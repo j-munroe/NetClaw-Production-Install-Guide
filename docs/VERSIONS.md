@@ -18,6 +18,8 @@
 | **NetClaw / OpenClaw** | Pin GitHub release / image digest | Check project releases |
 | **netclaw container** | Pin tag + digest | e.g. **0.28.3** |
 | **vault-mcp-server** | Pin release binary | Install at deploy time |
+| **DefenseClaw** | Pin GitHub release tag; verify installer checksums | e.g. **1.0.4** (confirm before cutover) |
+| **OpenShell** (optional) | Pin installer digest if used | NVIDIA OpenShell releases |
 | **Ubuntu (Vault hosts)** | Current LTS | **24.04** |
 | **GitLab CE + Runner** | Org-approved CE / Runner versions | Track GitLab releases |
 
@@ -38,6 +40,7 @@ When planning an upgrade, re-check:
 - https://pypi.org/project/hvac/
 - https://github.com/netclaw-dev/netclaw/releases
 - https://github.com/automateyournetwork/netclaw/releases
+- https://github.com/cisco-ai-defense/defenseclaw/releases
 
 Upgrade Vault with a change window: standby → active rolling restart, snapshot before, verify `raft list-peers` after.
 

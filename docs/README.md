@@ -23,7 +23,7 @@ flowchart LR
 | **1. Design** | Trust boundaries, security rules, delivery phases | [ARCHITECTURE](ARCHITECTURE.md) → [SECURITY](SECURITY.md) → [WORKPLAN](WORKPLAN.md) |
 | **2. Build** | HA install, pinned versions, path layout | [VERSIONS](VERSIONS.md) → [INSTALL](INSTALL.md) → [PATH_LAYOUT](PATH_LAYOUT.md) |
 | **3. Integrate** | CI, Ansible, Dev Containers, NetBox | [GITLAB](GITLAB.md) → [ANSIBLE](ANSIBLE.md) → [DEVCONTAINERS](DEVCONTAINERS.md) → [NETBOX](NETBOX.md) |
-| **4. Agent** | NetClaw, models, local LLM, SSH CA | [NETCLAW](NETCLAW.md) → [MODELS](MODELS.md) → [LOCAL_LLM](LOCAL_LLM.md) → [SSH_CA](SSH_CA.md) |
+| **4. Agent** | NetClaw, DefenseClaw, models, local LLM, SSH CA | [NETCLAW](NETCLAW.md) → [DEFENSECLAW](DEFENSECLAW.md) → [MODELS](MODELS.md) → [LOCAL_LLM](LOCAL_LLM.md) → [SSH_CA](SSH_CA.md) |
 | **5. Reference** | Diagrams, examples, policies, scripts | [DIAGRAMS](DIAGRAMS.md) · [../examples/](../examples/) · [../policies/](../policies/) · [../scripts/](../scripts/) |
 
 ---
@@ -58,6 +58,7 @@ flowchart LR
 | Doc | What you get |
 |-----|----------------|
 | [NETCLAW.md](NETCLAW.md) | Vault MCP, AppRole, redaction |
+| [DEFENSECLAW.md](DEFENSECLAW.md) | Open-source DefenseClaw + optional OpenShell |
 | [MODELS.md](MODELS.md) | Claude vs OpenAI vs local |
 | [LOCAL_LLM.md](LOCAL_LLM.md) | Production-capable Ollama + Qwen3 |
 | [SSH_CA.md](SSH_CA.md) | SSH CA vs ClearPass; zero-touch seeding |
@@ -79,6 +80,7 @@ flowchart LR
 - **GitLab Community Edition** on-prem (JWT + Vault CLI, not `secrets:vault`)
 - **NetBox Community** as inventory SoT (paths, not passwords)
 - **ClearPass Onboard** for X.509 / NAC (not Vault SSH CA)
+- **DefenseClaw** (open source) for NetClaw MCP scan + runtime guardrails ([DEFENSECLAW.md](DEFENSECLAW.md))
 - **Pinned** package versions in production ([VERSIONS.md](VERSIONS.md))
 
 ---
@@ -89,5 +91,5 @@ flowchart LR
 2. Deploy HA Vault per [INSTALL](INSTALL.md); complete raft peer check + snapshot restore drill.
 3. Adopt [PATH_LAYOUT](PATH_LAYOUT.md) Strategy A; load `stage` secrets first, then `prod`.
 4. Wire separate GitLab JWT roles ([GITLAB](GITLAB.md)) and one playbook ([ANSIBLE](ANSIBLE.md)).
-5. Enable NetClaw AppRole on stage; promote prod paths after audit review ([NETCLAW](NETCLAW.md)).
-6. Roll SSH CA + zero-touch bastion trust ([SSH_CA](SSH_CA.md)).
+5. Enable NetClaw AppRole on stage; wire DefenseClaw observe→action ([NETCLAW](NETCLAW.md), [DEFENSECLAW](DEFENSECLAW.md)).
+6. Promote prod paths after audit review; roll SSH CA + zero-touch bastion trust ([SSH_CA](SSH_CA.md)).

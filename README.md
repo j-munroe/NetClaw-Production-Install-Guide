@@ -22,7 +22,7 @@ flowchart LR
   Design --> Arch[Architecture + security]
   Build --> Install[HA install + path layout]
   Integ --> GL[GitLab / Ansible / NetBox]
-  Agent --> NC[NetClaw / SSH CA / models]
+  Agent --> NC[NetClaw / DefenseClaw / SSH CA]
 ```
 
 ## Stack at a glance
@@ -35,6 +35,7 @@ flowchart LR
 | **VS Code Dev Containers** | Host Vault auth via `remoteEnv` / OIDC |
 | **NetBox Community** | Inventory + `vault_path` (no passwords) |
 | **NetClaw** | Agent + Vault MCP |
+| **DefenseClaw** | Open-source MCP scan + runtime guardrails ([docs/DEFENSECLAW.md](docs/DEFENSECLAW.md)) |
 | **ClearPass Onboard** | X.509 / NAC (separate from SSH CA) |
 
 ## System overview
@@ -62,7 +63,7 @@ flowchart TB
     CP[ClearPass Onboard]
   end
 
-  NC -->|AppRole / Vault MCP| V
+  NC -->|AppRole / Vault MCP + DefenseClaw| V
   GL -->|JWT + Vault CLI| V
   AN -->|JWT or AppRole + lookups| V
   DC -->|OIDC / token via host| V
@@ -79,7 +80,7 @@ flowchart TB
 2. Deploy a **3+ node** Raft cluster with TLS and auto-unseal ([docs/INSTALL.md](docs/INSTALL.md)).
 3. Lock path Strategy A for `stage` / `prod` ([docs/PATH_LAYOUT.md](docs/PATH_LAYOUT.md)).
 4. Wire GitLab CE JWT roles (separate stage vs prod) → Ansible → NetBox → NetClaw.
-5. Roll out Vault SSH CA + zero-touch bastion trust; complete backup restore drill.
+5. Enable DefenseClaw (observe→action) around Vault MCP; roll SSH CA + zero-touch bastion trust; complete backup restore drill.
 
 Pin versions after change control ([docs/VERSIONS.md](docs/VERSIONS.md)). Scripts under `scripts/` are **reference helpers only** — not a production installer.
 

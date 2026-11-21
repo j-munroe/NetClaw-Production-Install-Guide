@@ -15,7 +15,7 @@ Trust zones and data flows for Vault as secrets SoT. Start the full reading path
 | **CI** | GitLab CE + Runners, Ansible in CI | JWT → Vault CLI (CE) or `secrets:vault` (Premium+) → role-scoped KV |
 | **Workstation** | VS Code Dev Containers, local Ansible | OIDC/token/AppRole via host → `remoteEnv` |
 | **Inventory** | NetBox Community, optional Orb Agent | Token in Vault; device *paths* in NetBox |
-| **Agent** | NetClaw + Vault MCP + DefenseClaw + LLM (Claude/OpenAI/local) | AppRole → read (default); change role gated; model choice in [MODELS.md](MODELS.md) |
+| **Agent** | NetClaw + Vault MCP + **DefenseClaw** (+ optional OpenShell) + LLM | AppRole → read (default); change role gated by DefenseClaw; [DEFENSECLAW.md](DEFENSECLAW.md) · [MODELS.md](MODELS.md) |
 | **Network devices** | Routers/switches/firewalls | Accept SSH cert (preferred) or static user from Vault |
 
 ```mermaid
@@ -131,10 +131,10 @@ flowchart TB
 
 | Client | Auth | Policy |
 |--------|------|--------|
-| Human admins / Dev Containers | OIDC or short-lived token | lab read / ops |
+| Human admins / Dev Containers | OIDC or short-lived token | stage read / ops |
 | GitLab CI / Ansible in CI | JWT | `gitlab-ci` or `ansible-automation` |
 | Ansible controller (non-CI) | AppRole | `ansible-automation` |
-| NetClaw | AppRole | `netclaw-read` / `netclaw-change` |
+| NetClaw | AppRole | `netclaw-read` / `netclaw-change` (DefenseClaw-gated) |
 | Orb / discovery | AppRole or token | `netbox-agent` |
 
 ```mermaid

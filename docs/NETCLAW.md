@@ -2,11 +2,12 @@
 
 <!-- doc-nav:start -->
 > **Hub:** [Documentation home](README.md) · **4. Agent**  
-> ← [NetBox](NETBOX.md) · [Models](MODELS.md) →
+> ← [NetBox](NETBOX.md) · [DefenseClaw](DEFENSECLAW.md) →
 <!-- doc-nav:end -->
 
 NetClaw integrates with the official Hashicorp **vault-mcp-server** so the agent can retrieve credentials and certificates without embedding secrets in skills or chat.
 
+For **DefenseClaw** (open-source scan + runtime guardrails + change gates), see [DEFENSECLAW.md](DEFENSECLAW.md).  
 For **which LLM to use** (Claude vs OpenAI vs local), see [MODELS.md](MODELS.md).  
 For **installing a local LLM** (Ollama + Qwen3), see [LOCAL_LLM.md](LOCAL_LLM.md).
 
@@ -31,9 +32,9 @@ flowchart LR
 
 1. **Never** put device passwords in `SOUL.md`, skills, or git-tracked `.env`.
 2. Secret **values must not appear** in chat, Canvas, or logs — inject into tools/files only.
-3. Default policy = **read/troubleshoot**. Change/write uses a separate role + human approval (DefenseClaw).
-4. Prefer SSH OTP/cert (TTL minutes) over static passwords.
-5. All access must show up in Vault audit with the NetClaw AppRole identity.
+3. Default policy = **read/troubleshoot**. Change/write uses a separate role + human approval gated by **DefenseClaw** ([DEFENSECLAW.md](DEFENSECLAW.md)).
+4. Prefer SSH cert (TTL minutes) over static passwords.
+5. All access must show up in Vault audit with the NetClaw AppRole identity; DefenseClaw audits model/tool traffic separately.
 
 ---
 
@@ -116,10 +117,10 @@ Attach `netclaw-read` by default:
 
 Use `netclaw-change` only when:
 
-- DefenseClaw / approval gate allows a change window
+- DefenseClaw allows the write tools for an approved change window ([DEFENSECLAW.md](DEFENSECLAW.md) §7)
 - Separate AppRole or temporary token elevation is issued
 
-Policy files: [`../policies/`](../policies/).
+Policy files: [`../policies/`](../policies/). Checklist: [`../examples/defenseclaw/change-window-checklist.md`](../examples/defenseclaw/change-window-checklist.md).
 
 ---
 
@@ -146,7 +147,7 @@ If the model attempts to display a secret, skills/MCP should redact; treat visib
 - [ ] Stage device login via injected creds or SSH cert succeeds
 - [ ] Vault audit log shows AppRole / policy name
 - [ ] Prod paths denied until explicitly enabled
-- [ ] Write/change requires approval path
+- [ ] Write/change requires DefenseClaw + Vault `netclaw-change` path ([DEFENSECLAW.md](DEFENSECLAW.md))
 
 ---
 

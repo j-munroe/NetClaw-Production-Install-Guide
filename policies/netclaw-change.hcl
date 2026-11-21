@@ -1,13 +1,21 @@
-# NetClaw elevated: change windows only (pair with approval gates)
+# NetClaw elevated: change windows only (pair with DefenseClaw tool allow)
 # vault policy write netclaw-change policies/netclaw-change.hcl
+# Docs: docs/DEFENSECLAW.md · examples/defenseclaw/change-window-checklist.md
 
-# Lab credentials: read + rotate during approved changes
-path "secret/data/network/lab/*" {
+path "secret/data/network/stage/*" {
   capabilities = ["read", "create", "update"]
 }
-path "secret/metadata/network/lab/*" {
+path "secret/metadata/network/stage/*" {
   capabilities = ["list", "read"]
 }
+
+# Prod change: separate policy + stricter JWT/AppRole binding in production
+# path "secret/data/network/prod/*" {
+#   capabilities = ["read", "create", "update"]
+# }
+# path "secret/metadata/network/prod/*" {
+#   capabilities = ["list", "read"]
+# }
 
 path "secret/data/platform/netbox" {
   capabilities = ["read"]
@@ -16,12 +24,6 @@ path "secret/metadata/platform/netbox" {
   capabilities = ["read"]
 }
 
-# Change-oriented SSH role (separate from troubleshoot)
-path "ssh/creds/netclaw-change" {
-  capabilities = ["create", "update"]
-}
 path "ssh/sign/netclaw-change" {
   capabilities = ["create", "update"]
 }
-
-# Explicitly no prod in this example — add a dedicated prod-change policy later

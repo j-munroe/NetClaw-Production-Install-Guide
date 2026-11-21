@@ -102,12 +102,13 @@ Prod CI uses a **separate** policy (`gitlab-ci-prod`) bound only to protected-br
 
 ---
 
-## NetClaw guardrails
+## NetClaw + DefenseClaw guardrails
 
 - Default AppRole → `netclaw-read` (stage first; prod paths explicitly enabled)
-- Elevate to `netclaw-change` via approval workflow
-- MCP must redact secret values
-- Sandbox (OpenShell / DefenseClaw) for skill execution
+- **DefenseClaw** (open source): scan MCPs/skills; inspect LLM + tool calls; fail closed on unknown providers — [DEFENSECLAW.md](DEFENSECLAW.md)
+- Elevate to `netclaw-change` only inside an approved change window (DefenseClaw tool allow + short-lived Vault role)
+- MCP must redact secret values; Vault audit ≠ DefenseClaw audit — retain both
+- Optional OpenShell sandbox for FS/network isolation; not a substitute for Vault least privilege
 - Prefer SSH CA sign over shared static passwords in prod
 
 ---

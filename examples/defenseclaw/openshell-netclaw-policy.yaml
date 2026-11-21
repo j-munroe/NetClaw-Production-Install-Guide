@@ -1,0 +1,33 @@
+# Optional NVIDIA OpenShell policy sketch for NetClaw.
+# Apply only after reviewing OpenShell docs; adjust hosts to your environment.
+# Docs: docs/DEFENSECLAW.md
+
+name: netclaw
+description: NetClaw agent sandbox — Vault-backed network troubleshooting
+
+filesystem:
+  allow:
+    - /workspace
+    - /home/*/netclaw
+    - /tmp
+  deny:
+    - /etc/passwd
+    - /etc/shadow
+    - ~/.ssh
+    - /etc/vault.d
+    - /opt/vault
+
+network:
+  allow_outbound:
+    - "vault.example.local:8200"
+    - "netbox.example.local:443"
+    - "gitlab.example.local:443"
+    - "api.anthropic.com:443"
+    - "api.openai.com:443"
+    - "ollama.example.local:11434"
+  deny_outbound:
+    - "*:22"   # prefer bastion path controlled outside sandbox if required
+
+resources:
+  max_memory: 4Gi
+  max_cpu: 2

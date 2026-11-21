@@ -2,7 +2,7 @@
 
 <!-- doc-nav:start -->
 > **Hub:** [Documentation home](README.md) · **4. Agent**  
-> ← [NetClaw](NETCLAW.md) · [Local LLM](LOCAL_LLM.md) →
+> ← [DefenseClaw](DEFENSECLAW.md) · [Local LLM](LOCAL_LLM.md) →
 <!-- doc-nav:end -->
 
 NetClaw is **BYOM** (bring your own model). It works with Anthropic, OpenAI, Bedrock, Vertex, Ollama, and many other providers. Model choice still matters for multi-step, tool-heavy network troubleshooting.
@@ -91,7 +91,7 @@ Smaller locals (e.g. Llama 3.1, Gemma 3, Phi-4 class) can give *decent* results;
 Watch-outs:
 
 - Underpowered local Main → shallow reasoning, broken multi-tool plans, more human babysitting
-- Still apply Vault + read-only SOUL / DefenseClaw; local does **not** replace secrets hygiene
+- Still apply Vault + read-only SOUL / [DefenseClaw](DEFENSECLAW.md); local does **not** replace secrets hygiene. Register Ollama domains with DefenseClaw or traffic is fail-closed.
 - Pin model tags; upgrade deliberately
 
 ---
@@ -130,7 +130,7 @@ Compaction:  Local small
 
 - Secrets in `.env`, Ansible Vault files, or chat — use HashiCorp Vault ([ANSIBLE.md](ANSIBLE.md), [DEVCONTAINERS.md](DEVCONTAINERS.md))
 - Missing NetBox/Vault path design ([NETBOX.md](NETBOX.md), [WORKPLAN.md](WORKPLAN.md))
-- Unapproved writes to devices — DefenseClaw / approval gates
+- Unapproved writes to devices — [DefenseClaw](DEFENSECLAW.md) + `netclaw-change` gates
 - Bad MCP/tool wiring — skills and inventory quality dominate outcomes
 
 ---

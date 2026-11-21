@@ -302,7 +302,7 @@ netclaw model set main llama-local <id-from-discover> --context-window 32768
 - Local inference reduces cloud egress of show output — it does **not** replace Vault for device passwords ([SECURITY.md](SECURITY.md)).
 - Do not publish Ollama without auth/network controls.
 - Air-gap: mirror Ollama models on an internal registry/host; block outbound model pulls after initial sync.
-- Keep write tools gated (DefenseClaw / read-only SOUL) even with a local model ([NETCLAW.md](NETCLAW.md)).
+- Keep write tools gated (DefenseClaw / read-only SOUL) even with a local model ([DEFENSECLAW.md](DEFENSECLAW.md), [NETCLAW.md](NETCLAW.md)). Register the Ollama domain with DefenseClaw or model calls fail closed.
 
 ---
 
