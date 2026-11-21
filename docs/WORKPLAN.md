@@ -55,6 +55,7 @@ flowchart TB
 - [ ] Choose auth: **JWT** (GitLab), **AppRole** (NetClaw/controllers), **OIDC** (humans / Dev Containers)
 - [ ] Choose NetClaw **Main** LLM: Claude (recommended), OpenAI (if mandated), or local (air-gap) — [MODELS.md](MODELS.md)
 - [ ] If local: production Ollama host + pinned models — [LOCAL_LLM.md](LOCAL_LLM.md)
+- [ ] Require **DefenseClaw** for NetClaw production (OpenShell optional) — [DEFENSECLAW.md](DEFENSECLAW.md)
 - [ ] Confirm network path: Runners, NetBox, NetClaw, admins → Vault VIP:8200
 - [ ] Define RPO/RTO for Raft snapshot restore
 
@@ -211,18 +212,24 @@ ssh/roles/netclaw-change
 - [ ] If local/hybrid: production Ollama + pinned models ([LOCAL_LLM.md](LOCAL_LLM.md))
 - [ ] Register HashiCorp `vault-mcp-server`
 - [ ] Auth with **AppRole**; apply `netclaw-read` (stage first)
+- [ ] Install **DefenseClaw** (pinned release, checksum-verified); OpenClaw connector; durable sidecar ([DEFENSECLAW.md](DEFENSECLAW.md))
+- [ ] Register + scan `vault-mcp`; guardrails **observe** then **action** on stage
+- [ ] Register custom LLM providers (e.g. Ollama) so DefenseClaw does not fail-closed unknown domains
 - [ ] Verify secrets are **injected**, never echoed
-- [ ] Wire DefenseClaw / approval for write + `netclaw-change`
+- [ ] Wire DefenseClaw tool blocks + Vault `netclaw-change` for approved change windows
 - [ ] Explicit change control before enabling `prod/` reads
+- [ ] Optional: OpenShell sandbox with allowlisted Vault / NetBox / GitLab / LLM egress
 
 **Acceptance**
 
 - NetClaw connects to stage devices using Vault-sourced creds or SSH certs
 - Chat/UI shows redacted values only
 - Vault audit shows agent identity on each read
+- DefenseClaw sidecar up; MCP scan clean; observe→action soak recorded
+- Change-window drill: allow tools → elevate → revoke → re-block
 - Prod path access only after sign-off
 
-**Guide:** [NETCLAW.md](NETCLAW.md) · [MODELS.md](MODELS.md) · [LOCAL_LLM.md](LOCAL_LLM.md)
+**Guide:** [NETCLAW.md](NETCLAW.md) · [DEFENSECLAW.md](DEFENSECLAW.md) · [MODELS.md](MODELS.md) · [LOCAL_LLM.md](LOCAL_LLM.md)
 
 ---
 
@@ -312,6 +319,7 @@ Promote **stage → prod** for each consumer after audit review. Phases 3 / 3b /
 - Zero Ansible Vault / committed `.env` passwords required for stage or prod playbooks
 - Dev Containers run the same playbooks using Vault auth (no secrets in the image)
 - 100% of NetClaw device access audited in Vault
+- DefenseClaw guardrails in **action** mode for production NetClaw; change windows dual-gated
 - Separate policies for troubleshoot vs change and stage vs prod
 - HA Raft peers healthy; restore drill within documented RTO
 - Time-to-rotate NetBox API token &lt; 15 minutes (procedure only; no code deploy)
