@@ -70,6 +70,7 @@ secret/                          # KV v2 mount
     arista/cvaas
     velocloud/manager
     cisco/epnm
+    cisco/nexus-dashboard-san
     zabbix/
     observium/
     aruba/central-classic

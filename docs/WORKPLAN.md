@@ -219,7 +219,7 @@ ssh/roles/netclaw-change
 - [ ] Wire DefenseClaw tool blocks + Vault `netclaw-change` for approved change windows
 - [ ] Explicit change control before enabling `prod/` reads
 - [ ] Optional: OpenShell sandbox with allowlisted Vault / NetBox / GitLab / LLM egress
-- [ ] Connect production platforms per [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md) (read-only first): Strata Cloud Manager, CVaaS, VeloCloud, EPNM, Zabbix, Observium, Aruba Central classic/CNX, Cloudflare, IOS-XR SSH, SolidServer, EdgeConnect GM
+- [ ] Connect production platforms per [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md) (read-only first): Strata Cloud Manager, CVaaS, VeloCloud, EPNM, Nexus Dashboard SAN, Zabbix, Observium, Aruba Central classic/CNX, Cloudflare, IOS-XR SSH, SolidServer, EdgeConnect GM
 
 **Acceptance**
 

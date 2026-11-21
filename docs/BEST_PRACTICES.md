@@ -218,10 +218,11 @@ Guide: [LOCAL_LLM.md](LOCAL_LLM.md)
 Guide: [PRODUCTION_ENVIRONMENTS.md](PRODUCTION_ENVIRONMENTS.md)
 
 - Store every controller token under `secret/platform/…`; IOS-XR under `secret/network/…` + prefer SSH CA.
-- Register and DefenseClaw-scan each MCP (CVaaS, Cloudflare, Zabbix, Aruba Central classic/CNX, etc.).
+- Register and DefenseClaw-scan each MCP (CVaaS, Cloudflare, Zabbix, Aruba Central classic/CNX, Nexus Dashboard SAN, etc.).
 - NetBox holds URLs, org IDs, `vault_path`, controller tags — never API secrets.
-- Enable read-only / stage first; gate SaaS and EPNM writes behind change windows.
-- Allowlist egress per SaaS/on-prem API; XR via bastion/SSH CA ([SSH_CA.md](SSH_CA.md)).
+- Enable read-only / stage first; gate SaaS, EPNM, and **SAN zoning** writes behind change windows.
+- Prefer Nexus Dashboard **API keys** over interactive ND login passwords for automation.
+- Allowlist egress per SaaS/on-prem API (include ND VIP); XR via bastion/SSH CA ([SSH_CA.md](SSH_CA.md)).
 
 ---
 

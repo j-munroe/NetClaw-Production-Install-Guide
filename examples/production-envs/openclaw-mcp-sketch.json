@@ -33,6 +33,15 @@
         "CLOUDFLARE_ACCOUNT_ID": "${CLOUDFLARE_ACCOUNT_ID}",
         "CLOUDFLARE_ZONE_ID": "${CLOUDFLARE_ZONE_ID}"
       }
+    },
+    "nexus-dashboard-san-mcp": {
+      "command": "nexus-dashboard-san-mcp",
+      "args": [],
+      "env": {
+        "ND_SAN_BASE_URL": "${ND_SAN_BASE_URL}",
+        "ND_SAN_API_KEY": "${ND_SAN_API_KEY}",
+        "ND_SAN_VERIFY_TLS": "${ND_SAN_VERIFY_TLS}"
+      }
     }
   }
 }

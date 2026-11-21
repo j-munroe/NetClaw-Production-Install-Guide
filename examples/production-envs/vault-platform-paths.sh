@@ -27,6 +27,12 @@ vault kv put secret/platform/cisco/epnm \
   username="netclaw-api" \
   password="CHANGE_ME"
 
+vault kv put secret/platform/cisco/nexus-dashboard-san \
+  base_url="https://nd.example.local" \
+  api_key="CHANGE_ME" \
+  domain="DefaultAuth" \
+  verify_tls="true"
+
 vault kv put secret/platform/zabbix \
   url="https://zabbix.example.local" \
   api_token="CHANGE_ME"

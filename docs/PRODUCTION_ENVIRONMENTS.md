@@ -5,7 +5,7 @@
 > ← [SSH CA](SSH_CA.md) · [Diagrams](DIAGRAMS.md) →
 <!-- doc-nav:end -->
 
-How NetClaw reaches **your** production controllers, NMS, DDI, edge, and IOS-XR devices — with **Vault** as secrets SoT, **NetBox** as inventory, and **DefenseClaw** scanning every MCP.
+How NetClaw reaches **your** production controllers, NMS, DDI, edge, SAN (Nexus Dashboard), and IOS-XR devices — with **Vault** as secrets SoT, **NetBox** as inventory, and **DefenseClaw** scanning every MCP.
 
 Upstream NetClaw already ships first-class MCP/skills for some of these (CloudVision, Cloudflare, Zabbix, Prisma/SASE-style Palo Alto APIs, pyATS/SSH). Others use the same pattern: **API token in Vault → MCP or skill → DefenseClaw register/scan → stage then prod**.
 
@@ -27,6 +27,7 @@ flowchart TB
   NB -->|vault_path / urls / roles| NC
   MCP --> SaaS[SaaS controllers]
   MCP --> OnPrem[On-prem NMS / EPNM / DDI]
+  MCP --> SAN[Nexus Dashboard SAN / NDFC]
   MCP --> XR[IOS-XR via SSH CA / pyATS]
 ```
 
@@ -57,6 +58,7 @@ flowchart TB
 | 9 | **Cisco IOS-XR** (direct SSH) | SSH (+ Vault SSH CA) | **pyATS** / multivendor CLI + SSH CA | `secret/network/{env}/{site}/{device}/credentials` + `ssh/sign/…` | Prefer CA over static TACACS password |
 | 10 | **EfficientIP SolidServer (DDI)** | API key / user | Custom MCP or REST skill (DNS/DHCP/IPAM) | `secret/platform/efficientip/solidserver` | Align zones/subnets with NetBox |
 | 11 | **Aruba EdgeConnect Global Manager (SaaS)** | Orchestrator API | Custom/community MCP or REST skill | `secret/platform/aruba/edgeconnect-gm` | SD-WAN; read-only first |
+| 12 | **Cisco Nexus Dashboard — SAN** (NDFC SAN Controller) | On-prem ND login / API key + NDFC SAN REST | Custom MCP or REST skill over ND + SAN APIs | `secret/platform/cisco/nexus-dashboard-san` | Prefer API key for automation; read-only first |
 
 Examples: [`../examples/production-envs/`](../examples/production-envs/).
 
@@ -86,6 +88,7 @@ secret/platform/
   arista/cvaas                      # host, token
   velocloud/manager                 # base_url, api_token (or oauth fields)
   cisco/epnm                        # base_url, username, password_or_token
+  cisco/nexus-dashboard-san         # base_url, api_key (preferred) or user/pass + domain
   zabbix                            # url, api_token
   observium                         # url, api_token
   aruba/central-classic             # base_url, client_id, client_secret, customer_id, …
@@ -110,6 +113,12 @@ vault kv put secret/platform/paloalto/strata-cloud-manager \
   client_id="CHANGE_ME" client_secret="CHANGE_ME" \
   tsg_id="CHANGE_ME" region="americas" \
   base_url="https://api.strata.paloaltonetworks.com"
+
+vault kv put secret/platform/cisco/nexus-dashboard-san \
+  base_url="https://nd.example.local" \
+  api_key="CHANGE_ME" \
+  domain="DefaultAuth" \
+  verify_tls="true"
 ```
 
 Grant NetClaw **read** on only the platform paths it needs (split AppRoles later if blast radius demands it).
@@ -197,6 +206,46 @@ Grant NetClaw **read** on only the platform paths it needs (split AppRoles later
 - NetBox: tag EC appliances `controller=edgeconnect-gm`.
 - DefenseClaw + egress allowlist for Global Manager API hostname.
 
+### 5.12 Cisco Nexus Dashboard for SAN (NDFC SAN Controller)
+
+Nexus Dashboard (ND) hosts the **SAN Controller** service (NDFC SAN). NetClaw should treat this as an **on-prem controller plane** for MDS/SAN fabrics — inventory, VSAN/zoning visibility, alarms — not as a place to store device TACACS passwords (those stay in Vault).
+
+**Auth (Cisco DevNet pattern)**
+
+- Prefer an **API key** on a dedicated ND local automation user (better for scripts/agents than interactive login).
+- Alternative: `POST https://<nd-node>/login` with `userName` / `userPasswd` / `domain`, then use the returned JWT as `Authorization: Bearer …` (tokens expire — default often ~20 minutes; refresh via `/refresh` or re-login).
+- NDFC SAN REST shares the ND gateway; SAN endpoints live under the Fabric Controller API prefix, e.g. `https://<nd-node>/appcenter/cisco/ndfc/api/v1/…` (see [NDFC getting started](https://developer.cisco.com/docs/nexus-dashboard-fabric-controller/latest/getting-started/) and [API reference (SAN)](https://developer.cisco.com/docs/nexus-dashboard-fabric-controller/latest/api-reference-san/)).
+- In-product docs: `https://<nd-node>/apidocs/`.
+
+**Vault**
+
+```bash
+vault kv put secret/platform/cisco/nexus-dashboard-san \
+  base_url="https://nd.example.local" \
+  api_key="CHANGE_ME" \
+  domain="DefaultAuth" \
+  verify_tls="true"
+```
+
+If you must use user/password instead of API key, store `username` / `password` / `domain` in the same path — still inject via host env, never git. Trust the ND TLS CA on the NetClaw host (`REQUESTS_CA_BUNDLE` / system trust); do not use `verify_tls=false` in production.
+
+**NetClaw / MCP**
+
+- Until a first-class NetClaw MCP exists in your tree: thin **read-only** REST MCP/skill that lists fabrics, switches, VSAN/zone summaries, and alarms via ND + NDFC SAN APIs.
+- Register as e.g. `nexus-dashboard-san-mcp`; `defenseclaw mcp set` + `scan`.
+- Gate any zoning / config POST/DELETE behind DefenseClaw tool blocks + change window + `netclaw-change`.
+- RBAC lives in Nexus Dashboard (security domains / roles) — grant NetClaw a **read-focused** role on SAN fabrics only.
+
+**NetBox**
+
+- Tag SAN switches / directors: `controller=nexus-dashboard-san`, `controller_url=https://nd.example.local`, `vault_path=platform/cisco/nexus-dashboard-san`.
+- Optional: custom field `san_fabric` matching the ND/NDFC fabric or site name.
+- Cross-check MDS inventory in NetBox against ND; device SSH (if ever needed) still uses Vault paths / SSH CA separately.
+
+**Egress**
+
+- Allowlist `nd.example.local:443` (and any ND cluster VIPs) from the NetClaw host / OpenShell policy.
+
 ---
 
 ## 6. DefenseClaw & egress
@@ -205,7 +254,7 @@ Grant NetClaw **read** on only the platform paths it needs (split AppRoles later
 # After each MCP is configured
 defenseclaw mcp set zabbix-mcp --command …   # per your install
 defenseclaw mcp scan zabbix-mcp
-# Repeat for cvaas, cloudflare, aruba-central-*, custom REST MCPs, vault-mcp, pyats-mcp
+# Repeat for cvaas, cloudflare, aruba-central-*, nexus-dashboard-san, custom REST MCPs, vault-mcp, pyats-mcp
 ```
 
 OpenShell / host firewall allowlist (sketch):
@@ -215,7 +264,7 @@ OpenShell / host firewall allowlist (sketch):
 | `vault.example.local:8200` | Secrets |
 | `netbox.example.local:443` | Inventory |
 | CVaaS / Strata / Central / EdgeConnect / VeloCloud / Cloudflare API hosts | SaaS |
-| `epnm.example.local`, `zabbix.example.local`, `observium.example.local`, SolidServer | On-prem |
+| `epnm.example.local`, `nd.example.local` (Nexus Dashboard SAN), `zabbix.example.local`, `observium.example.local`, SolidServer | On-prem |
 | XR / bastion management prefixes | SSH |
 
 Deny arbitrary internet SSH from the agent sandbox when possible; use bastions.
@@ -232,7 +281,7 @@ flowchart LR
   D --> E[Aruba Central classic/CNX]
   E --> F[Strata Cloud Manager]
   F --> G[EdgeConnect GM + VeloCloud]
-  G --> H[EPNM + SolidServer]
+  G --> H[EPNM + ND SAN + SolidServer]
   H --> I[Prod write windows]
 ```
 
@@ -243,8 +292,8 @@ flowchart LR
 5. Aruba Central MCPs (classic, then CNX)  
 6. Strata Cloud Manager  
 7. EdgeConnect GM + VeloCloud  
-8. EPNM + EfficientIP  
-9. Carefully open write tools under change control  
+8. EPNM + **Nexus Dashboard SAN** + EfficientIP  
+9. Carefully open write tools under change control (including SAN zoning)  
 
 ---
 
