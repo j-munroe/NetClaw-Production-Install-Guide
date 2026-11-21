@@ -227,9 +227,26 @@ vault write auth/jwt/config \
 
 ---
 
-## 8. SSH engine (pilot)
+## 8. SSH engine (pilot → CA mode)
 
-**OTP mode (fastest pilot):**
+Full operations guide (ClearPass, bastions, verification): **[SSH_CA.md](SSH_CA.md)**.
+
+The SSH secrets engine can run in **OTP** or **CA** mode. For NetClaw / Ansible at scale, plan on **CA mode**. OTP is only a quick lab stepping stone.
+
+### 8.1 Important: Vault SSH CA ≠ ClearPass certificates
+
+| System | What it issues | Use for |
+|--------|----------------|---------|
+| **Vault SSH CA** | OpenSSH **SSH certificates** (user/host) | Automation SSH (NetClaw, Ansible, jump hosts) |
+| **HPE ClearPass Onboard** (your current path) | **X.509** certs (client/server) via onboard / **SCEP** / **EST** | 802.1X / NAC, many device TLS identities |
+
+**Can ClearPass Onboard be used for server certificates?**  
+**Yes** — Onboard’s CA can issue **X.509 server and client** certificates (Root, Intermediate under enterprise PKI, or Imported CA). That is appropriate for HTTPS/management TLS and NAC-related identities when the device enrolls via SCEP/EST or Onboard provisioning.
+
+**Can ClearPass replace Vault SSH CA mode?**  
+**No.** `sshd` `TrustedUserCAKeys` expects Vault’s **SSH CA public key**, not a ClearPass X.509 cert. Keep ClearPass for X.509/NAC; use Vault for SSH certificate signing. See [SSH_CA.md](SSH_CA.md).
+
+### 8.2 OTP mode (fastest pilot only)
 
 ```bash
 vault write ssh/roles/netclaw-troubleshoot \
@@ -238,22 +255,90 @@ vault write ssh/roles/netclaw-troubleshoot \
   cidr_list=10.0.0.0/8
 ```
 
-Install `vault-sshhelper` (or equivalent) on the target device/host so OTP is validated against Vault.
+Install `vault-sshhelper` (or equivalent) on the target so each login validates an OTP **against Vault** (device typically needs reachability to Vault at auth time). Prefer CA mode when that is awkward for network devices.
 
-**CA mode (preferred long-term):**
+### 8.3 CA mode (preferred long-term)
+
+**Concept:** Vault holds an SSH signing CA. You install only the **CA public key** on trusted hosts. Clients ask Vault to **sign** their SSH public key for a short TTL and allowed principals (e.g. `netops`). No shared password; no device callback to Vault at SSH time.
+
+#### A. Create the SSH CA in Vault
 
 ```bash
 vault write ssh/config/ca generate_signing_key=true
 vault read -field=public_key ssh/config/ca > /tmp/vault-ssh-ca.pub
-# Install as TrustedUserCAKeys on devices
+# Escrow/backup of CA private material is a ceremony — treat like a root key ([SSH_CA.md](SSH_CA.md))
+```
+
+#### B. Define roles (separate troubleshoot vs change)
+
+```bash
 vault write ssh/roles/netclaw-troubleshoot \
   key_type=ca \
+  algorithm_signer=rsa-sha2-256 \
+  allow_user_certificates=true \
+  allow_host_certificates=false \
+  allowed_users=netops \
+  default_user=netops \
+  default_extensions='{"permit-pty":""}' \
+  ttl=30m \
+  max_ttl=1h
+
+vault write ssh/roles/netclaw-change \
+  key_type=ca \
+  algorithm_signer=rsa-sha2-256 \
   allow_user_certificates=true \
   allowed_users=netops \
   default_user=netops \
-  ttl=30m \
-  max_ttl=1h
+  ttl=15m \
+  max_ttl=30m
 ```
+
+Map policies so NetClaw **read** may `ssh/sign/netclaw-troubleshoot` only; change role stays approval-gated ([SECURITY.md](SECURITY.md)).
+
+#### C. Trust the CA on OpenSSH targets (bastions / Linux)
+
+```bash
+# On each jump host (example)
+sudo cp /tmp/vault-ssh-ca.pub /etc/ssh/vault-ssh-ca.pub
+# sshd_config:
+#   TrustedUserCAKeys /etc/ssh/vault-ssh-ca.pub
+sudo systemctl reload sshd
+```
+
+**Network OS note:** many routers/switches lack OpenSSH user-certificate support. Pilot on **Linux bastions** first; for unsupported NOS, SSH to a Vault-CA bastion, then use vendor auth (or KV secrets) to the device ([SSH_CA.md](SSH_CA.md)).
+
+#### D. Issue a user certificate (from CI / NetClaw host)
+
+```bash
+ssh-keygen -t ed25519 -f /tmp/netclaw_id -N ""
+vault write -field=signed_key ssh/sign/netclaw-troubleshoot \
+  public_key=@/tmp/netclaw_id.pub \
+  valid_principals=netops \
+  ttl=30m > /tmp/netclaw_id-cert.pub
+
+ssh -i /tmp/netclaw_id \
+  -o CertificateFile=/tmp/netclaw_id-cert.pub \
+  -o IdentitiesOnly=yes \
+  netops@jump.example.local
+```
+
+Wire the same sign step after GitLab JWT or NetClaw AppRole login so playbooks/agents never store long-lived SSH private keys in git.
+
+### 8.4 What to use where (recommendations)
+
+1. **ClearPass Onboard** — keep for X.509: 802.1X, onboard, and **server/client TLS** enrollment (SCEP/EST) for appliances that already fit that process.
+2. **Vault SSH CA** — NetClaw, Ansible, GitLab runners SSH to bastions (and to devices that support SSH certs).
+3. **Vault PKI engine** (optional later) — short-lived X.509 for services you want Vault to mint via API when ClearPass/enterprise PKI is not the right enrollment path.
+4. **Enterprise PKI** — if ClearPass Onboard is Intermediate under a corporate root, keep that chain for NAC/TLS; do not put the SSH CA under that same X.509 tree.
+5. **Bastion pattern** — default recommendation when device SSH cert support is incomplete.
+6. **Short TTLs + dual roles** — troubleshoot vs change; audit every `ssh/sign`.
+
+### 8.5 Acceptance for this step
+
+- [ ] SSH CA created; public key distributed to at least one lab bastion
+- [ ] Successful SSH with a Vault-signed user cert (OTP path optional)
+- [ ] Documented decision: ClearPass for X.509/server TLS; Vault for SSH CA
+- [ ] NetBox `vault_ssh_role` planned alongside `vault_path` ([NETBOX.md](NETBOX.md))
 
 ---
 
@@ -280,7 +365,8 @@ curl -sS --cacert /path/to/ca.crt "$VAULT_ADDR/v1/sys/health"
 1. [GITLAB.md](GITLAB.md) — wire CI JWT + `secrets:vault`
 2. [NETBOX.md](NETBOX.md) — token in Vault + device path refs
 3. [NETCLAW.md](NETCLAW.md) — Vault MCP registration
-4. Return to [WORKPLAN.md](WORKPLAN.md) Phase 6–7 for SSH rollout and ops
+4. [SSH_CA.md](SSH_CA.md) — CA mode ops, ClearPass coexistence, bastions
+5. Return to [WORKPLAN.md](WORKPLAN.md) Phase 6–7 for SSH rollout and ops
 
 ---
 

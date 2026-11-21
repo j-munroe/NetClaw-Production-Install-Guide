@@ -223,14 +223,17 @@ ssh/roles/netclaw-change
 
 **Tasks**
 
-- [ ] Enable SSH secrets engine (OTP and/or CA mode)
-- [ ] Deploy CA public key or `vault-sshhelper` on pilot devices
-- [ ] NetClaw / runners request short-lived creds per session
+- [ ] Enable SSH secrets engine; prefer **CA mode** over OTP for scale ([INSTALL.md](INSTALL.md) §8, [SSH_CA.md](SSH_CA.md))
+- [ ] Keep **ClearPass Onboard** for X.509 / NAC / device TLS (SCEP/EST); do not use it as SSH CA
+- [ ] Decide server TLS source: ClearPass/enterprise PKI vs optional Vault PKI
+- [ ] Deploy Vault SSH CA public key on lab bastions (`TrustedUserCAKeys`); bastion pattern for NOS without SSH certs
+- [ ] NetClaw / runners request short-lived signed certs per session
 - [ ] Retire shared static passwords where possible
 
 **Acceptance**
 
-- Lab device login works with Vault-issued OTP/cert; TTL ≤ 30 minutes
+- Lab bastion (or capable device) login works with Vault-signed SSH cert; TTL ≤ 30 minutes
+- Written split: ClearPass = X.509; Vault = SSH CA
 - Static password path marked deprecated
 
 ---

@@ -277,19 +277,19 @@ Existing files: [`../policies/`](../policies/).
 
 ## SSH and PKI beside KV
 
-Do **not** store short-lived SSH certs as KV files. Use engines:
+Do **not** store short-lived SSH certs as KV files. Use the SSH engine. X.509/NAC stays with **ClearPass Onboard** where you already operate it — see [SSH_CA.md](SSH_CA.md).
 
 ```
 ssh/roles/netclaw-troubleshoot
 ssh/roles/netclaw-change
-pki/issue/network-devices          # optional
+pki/issue/network-devices          # optional X.509 via Vault — not a ClearPass replacement for NAC
 ```
 
 KV still holds:
 
 - Static fallback passwords during migration
 - Platform API tokens
-- Optional CA bootstrap material only if your process requires it (prefer generated Vault CA)
+- Optional CA bootstrap material only if your process requires it (prefer generated Vault SSH CA)
 
 ---
 

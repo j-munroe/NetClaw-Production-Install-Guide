@@ -38,7 +38,7 @@ Writes require `create` / `update` on `secret/data/...` and should be rare for a
 | GitLab JWT Vault token | 15m |
 | NetClaw AppRole token | 1h (max 4h) |
 | AppRole secret-id | 24h–7d (rotate often) |
-| SSH OTP/cert | 15–30m |
+| SSH OTP/cert (Vault SSH CA) | 15–30m |
 | Human admin token | 1h + MFA |
 
 ---
