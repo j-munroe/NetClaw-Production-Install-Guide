@@ -5,7 +5,7 @@
 | Zone | Components | Secrets access |
 |------|------------|----------------|
 | **Secrets core** | Vault cluster, unseal operators, audit storage | All mounts (admin only) |
-| **CI** | GitLab, GitLab Runners, Ansible in CI | JWT → role-scoped KV paths |
+| **CI** | GitLab CE + Runners, Ansible in CI | JWT → Vault CLI (CE) or `secrets:vault` (Premium+) → role-scoped KV |
 | **Workstation** | VS Code Dev Containers, local Ansible | OIDC/token/AppRole via host → `remoteEnv` |
 | **Inventory** | NetBox Community, optional Orb Agent | Token in Vault; device *paths* in NetBox |
 | **Agent** | NetClaw + Vault MCP + DefenseClaw + LLM (Claude/OpenAI/local) | AppRole → read (default); change role gated; model choice in [MODELS.md](MODELS.md) |
@@ -29,8 +29,8 @@ Engineer → NetClaw chat
 GitLab job (protected branch)
   → id_tokens JWT
   → Vault auth/jwt
-  → VAULT_TOKEN or secrets:vault files
-  → Ansible community.hashi_vault lookups
+  → CE: Vault CLI → VAULT_TOKEN → Ansible lookups
+     Premium+: optional secrets:vault file/env injection
   → devices / APIs
 ```
 

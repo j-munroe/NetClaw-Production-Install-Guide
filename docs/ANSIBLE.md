@@ -71,7 +71,7 @@ collections:
 
 | Where Ansible runs | Vault auth | Notes |
 |--------------------|------------|--------|
-| **GitLab CI job** | JWT (`secrets:vault` *or* lookup with JWT) | Prefer GitLab → Vault JWT; see [GITLAB.md](GITLAB.md) |
+| **GitLab CI job** | JWT → Vault CLI token (CE) or `secrets:vault` (Premium+) | On CE use JWT login then lookups; see [GITLAB.md](GITLAB.md) |
 | **Dedicated AWX / controller** | AppRole | Machine identity; rotate `secret_id` |
 | **VS Code Dev Container** | Token or AppRole via `remoteEnv` | See [DEVCONTAINERS.md](DEVCONTAINERS.md) |
 | **Engineer laptop (ad hoc)** | OIDC or short-lived token | Avoid long-lived personal tokens |
@@ -164,9 +164,28 @@ Prefer `vault_kv2_get` for clarity with KV v2.
 
 Two workable patterns:
 
-### A. Inject files with `secrets:vault`, then run Ansible (simplest ops)
+### A. GitLab CE (recommended here): JWT → `VAULT_TOKEN` → Ansible lookups
 
-GitLab writes temp files; playbook reads env/file vars — no Vault plugin required in the job image.
+Works on **Community Edition**. Job authenticates once, exports `VAULT_TOKEN`, playbook uses lookups per host path.
+
+```yaml
+id_tokens:
+  VAULT_ID_TOKEN:
+    aud: https://vault.example.local
+script:
+  - export VAULT_ADDR="$VAULT_SERVER_URL"
+  - export VAULT_TOKEN="$(vault write -field=token auth/jwt/login role=$VAULT_AUTH_ROLE jwt=$VAULT_ID_TOKEN)"
+  - export ANSIBLE_HASHI_VAULT_ADDR="$VAULT_ADDR"
+  - export ANSIBLE_HASHI_VAULT_TOKEN="$VAULT_TOKEN"
+  - ansible-playbook -i inventory playbooks/site.yml
+```
+
+Use policy [`../policies/ansible-automation.hcl`](../policies/ansible-automation.hcl) (or reuse `gitlab-ci`).  
+See [`../examples/ansible/gitlab-ci-ansible.yml`](../examples/ansible/gitlab-ci-ansible.yml) and [GITLAB.md](GITLAB.md).
+
+### B. Premium / Ultimate only: inject files with `secrets:vault`
+
+GitLab writes temp files; playbook reads env/file vars — no Vault plugin required in the job image. **Not available on CE.**
 
 ```yaml
 secrets:
@@ -179,19 +198,6 @@ script:
 ```
 
 Playbook uses `ansible_ssh_pass: "{{ lookup('file', lookup('env', 'ANSIBLE_PASSWORD')) }}"` when `file: true` (path in the variable).
-
-### B. Ansible talks to Vault itself (better for many hosts)
-
-Job authenticates once (JWT → token), exports `VAULT_TOKEN`, playbook uses lookups per host path.
-
-```yaml
-script:
-  - export VAULT_ADDR="$VAULT_SERVER_URL"
-  - export VAULT_TOKEN="$(vault write -field=token auth/jwt/login role=$VAULT_AUTH_ROLE jwt=$VAULT_ID_TOKEN)"
-  - ansible-playbook -i inventory playbooks/site.yml
-```
-
-Use policy [`../policies/ansible-automation.hcl`](../policies/ansible-automation.hcl) (or reuse `gitlab-ci`).
 
 See also [`../examples/ansible/`](../examples/ansible/).
 

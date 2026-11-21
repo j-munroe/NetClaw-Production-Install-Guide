@@ -1,5 +1,6 @@
-# Fragment: GitLab CI authenticates to Vault, then runs Ansible with lookups.
-# Merge into your project .gitlab-ci.yml; see docs/GITLAB.md and docs/ANSIBLE.md.
+# Fragment: GitLab Community Edition — JWT + Vault CLI, then Ansible lookups.
+# Works on CE (no secrets:vault). Merge into your project .gitlab-ci.yml.
+# See docs/GITLAB.md and docs/ANSIBLE.md. Image must include vault CLI + ansible.
 
 stages:
   - automate

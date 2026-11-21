@@ -53,6 +53,7 @@ Writes require `create` / `update` on `secret/data/...` and should be rare for a
 - Production role ≠ lab role
 - Protected variables + protected runners for prod
 - MR pipelines: inventory read only, no `prod/` secrets
+- On **Community Edition**, use JWT + Vault CLI (no `secrets:vault`); do not rely on auto-masking — keep secrets out of logs ([GITLAB.md](GITLAB.md))
 
 ## Ansible & Dev Container guardrails
 

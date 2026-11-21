@@ -27,7 +27,7 @@ Workplan and install setup for **HashiCorp Vault** as the secrets system of reco
 | [WORKPLAN.md](docs/WORKPLAN.md) | Phased delivery plan, owners, acceptance criteria |
 | [INSTALL.md](docs/INSTALL.md) | End-to-end install and bootstrap |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Trust boundaries and data flow |
-| [GITLAB.md](docs/GITLAB.md) | JWT auth + Runner secret injection |
+| [GITLAB.md](docs/GITLAB.md) | JWT auth + Vault for CE (CLI) and Premium (`secrets:vault`) |
 | [ANSIBLE.md](docs/ANSIBLE.md) | Migrate playbooks off Ansible Vault / CI passwords |
 | [DEVCONTAINERS.md](docs/DEVCONTAINERS.md) | VS Code Dev Containers without committed secrets |
 | [NETBOX.md](docs/NETBOX.md) | Inventory references, tokens, Orb Agent |

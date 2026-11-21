@@ -114,15 +114,16 @@ ssh/roles/netclaw-change
 
 **Tasks**
 
+- [ ] Confirm edition: **CE** → JWT + Vault CLI; Premium+ may use `secrets:vault`
 - [ ] Configure Vault JWT auth for GitLab issuer
 - [ ] Bound claims: project path, protected branches, environment
-- [ ] Example `.gitlab-ci.yml` with `id_tokens` + `secrets:vault`
+- [ ] Example `.gitlab-ci.yml` with `id_tokens` + Vault CLI login (CE) — see [GITLAB.md](GITLAB.md)
 - [ ] Migrate one pipeline off CI-stored passwords
 - [ ] Ensure MR pipelines cannot read `prod/` paths
 
 **Acceptance**
 
-- Protected-branch job reads `secret/network/lab/...` successfully
+- Protected-branch job reads `secret/network/lab/...` successfully on CE without `secrets:vault`
 - Unprotected/MR job denied for `prod/`
 - No device password visible in job logs
 
