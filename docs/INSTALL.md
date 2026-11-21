@@ -154,6 +154,8 @@ Or run:
 
 ## 5. Path layout & sample secrets
 
+Full design guide (Strategy A default, alternatives, NetBox/policy alignment): **[PATH_LAYOUT.md](PATH_LAYOUT.md)**.
+
 Write lab samples (replace values):
 
 ```bash

@@ -89,24 +89,31 @@ Replace static GitLab CI variables, Ansible Vault files, Dev Container `.env` se
 | `ssh/` | SSH | Short-lived OTP or signed SSH certs |
 | `pki/` (optional) | PKI | Device/client certs for gNMI/TLS |
 
-**Path convention**
+**Path convention (Strategy A — default)**
 
 ```
 secret/data/network/{env}/{site}/{device}/credentials
-secret/data/platform/netbox/api_token
-secret/data/platform/gitlab/runner_helpers   # if needed
+secret/data/platform/netbox
 ssh/roles/netclaw-troubleshoot
 ssh/roles/netclaw-change
 ```
 
 **Envs:** `lab`, `stage`, `prod`
 
+**Tasks**
+
+- [ ] Choose path strategy (A recommended; C for mount-level lab/prod isolation) — [PATH_LAYOUT.md](PATH_LAYOUT.md)
+- [ ] Document field names (`username` / `password` / `enable_secret`)
+- [ ] Align NetBox `vault_path` (or derivation rule) with Vault
+- [ ] Write policies that glob by `{env}` (separate lab vs prod identities)
+
 **Acceptance**
 
 - Sample secrets written for one lab device + NetBox token
 - Policies in `policies/` applied and tested with a non-root token
+- Team runbook names the chosen strategy
 
-**Guide:** [INSTALL.md](INSTALL.md) §4–5 · [SECURITY.md](SECURITY.md)
+**Guide:** [PATH_LAYOUT.md](PATH_LAYOUT.md) · [INSTALL.md](INSTALL.md) §4–5 · [SECURITY.md](SECURITY.md)
 
 ---
 

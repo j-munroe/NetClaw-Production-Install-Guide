@@ -36,6 +36,8 @@ secret/network/{env}/{site}/{device_name}/credentials
 Example: device `lab-rtr-01`, site `dc1`, env `lab` →  
 `secret/network/lab/dc1/lab-rtr-01/credentials`
 
+This is **Strategy A** in [PATH_LAYOUT.md](PATH_LAYOUT.md) (recommended default).
+
 ### Option B — Custom field (recommended)
 
 Add a device (or device-role) custom field:

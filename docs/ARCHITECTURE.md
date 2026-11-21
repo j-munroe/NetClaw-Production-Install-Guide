@@ -50,10 +50,12 @@ Engineer → vault login (OIDC) on host
 |------|-------|
 | Device hostname, role, site, IP, platform | **NetBox** |
 | Vault path / credential role name | **NetBox** custom field or naming convention |
-| Username / password / enable / API tokens | **Vault KV** |
+| Username / password / enable / API tokens | **Vault KV** (`secret/network/{env}/{site}/{device}/…`) |
 | Short-lived SSH | **Vault SSH engine** |
 | Automation code / Dev Container definition | **GitLab** (no secret values) |
 | Agent skills / MCP config | **NetClaw host** (no secret values in git) |
+
+Path strategies and alternatives: [PATH_LAYOUT.md](PATH_LAYOUT.md).
 
 ## Auth method map
 

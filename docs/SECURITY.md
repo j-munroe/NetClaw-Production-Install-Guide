@@ -10,6 +10,10 @@
 
 ---
 
+## Path layout
+
+Prefer `network/{env}/{site}/{device}/credentials` so policies can deny `prod/` independently of `lab/`. Full strategies: [PATH_LAYOUT.md](PATH_LAYOUT.md).
+
 ## KV v2 policy paths
 
 For KV v2, grant both data and metadata:
