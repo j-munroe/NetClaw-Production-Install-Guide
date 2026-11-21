@@ -333,12 +333,19 @@ Wire the same sign step after GitLab JWT or NetClaw AppRole login so playbooks/a
 5. **Bastion pattern** — default recommendation when device SSH cert support is incomplete.
 6. **Short TTLs + dual roles** — troubleshoot vs change; audit every `ssh/sign`.
 
-### 8.5 Acceptance for this step
+### 8.5 Zero-touch seeding (new systems, no human SSH)
+
+**Best method for this stack:** treat the Vault SSH CA **public** key as a trust anchor in git (or CI-fetched), and apply it with **NetBox-driven Ansible from GitLab CE** when a device/VM is `staged` — optionally bake the same pubkey into Linux **golden images**. Issue **user** certs only at connect time (`ssh/sign/...`); never bake user certs into images.
+
+Do **not** use ClearPass to seed SSH CA trust. Details, host-cert auto-enrollment, and anti-patterns: **[SSH_CA.md](SSH_CA.md)** · examples: [`../examples/ssh-ca-zero-touch/`](../examples/ssh-ca-zero-touch/).
+
+### 8.6 Acceptance for this step
 
 - [ ] SSH CA created; public key distributed to at least one lab bastion
 - [ ] Successful SSH with a Vault-signed user cert (OTP path optional)
 - [ ] Documented decision: ClearPass for X.509/server TLS; Vault for SSH CA
 - [ ] NetBox `vault_ssh_role` planned alongside `vault_path` ([NETBOX.md](NETBOX.md))
+- [ ] Zero-touch path defined (golden image and/or NetBox→GitLab→Ansible) with no interactive engineer SSH
 
 ---
 

@@ -1,0 +1,4 @@
+# Replace this file with the output of:
+#   vault read -field=public_key ssh/config/ca
+# Example shape only — not a real key:
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC... vault-ssh-ca@example

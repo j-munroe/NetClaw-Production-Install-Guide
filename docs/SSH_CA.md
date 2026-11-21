@@ -185,6 +185,155 @@ Use OTP to learn the SSH engine; move to **CA mode** for production automation.
 8. **Backup / rotation of SSH CA:** escrow Vault SSH CA private key material per HashiCorp guidance; rotating the SSH CA means rolling `TrustedUserCAKeys` on all trusts — schedule like a root key ceremony.
 9. **Audit:** Vault audit device logs every `ssh/sign`; pair with ClearPass logs for NAC certs — different systems, both retained.
 10. **NetBox:** store `vault_ssh_role` (e.g. `netclaw-troubleshoot`) next to `vault_path` ([PATH_LAYOUT.md](PATH_LAYOUT.md), [NETBOX.md](NETBOX.md)).
+11. **Zero-touch trust seeding** for new systems — see next section (recommended method for this stack).
+
+---
+
+## Zero-touch seeding: onboard new systems without human SSH
+
+“Seeding” here means making a **new** host or bastion trust the Vault SSH CA (and optionally obtain a **host** certificate) so NetClaw/Ansible can connect with short-lived **user** certs — with **no engineer pasting keys by hand**.
+
+### What must be distributed
+
+| Artifact | Secret? | Where it goes |
+|----------|---------|----------------|
+| Vault SSH **CA public** key | **No** (trust anchor) | `TrustedUserCAKeys` on every SSH target |
+| Vault SSH **CA private** key | **Yes** | **Only inside Vault** — never on endpoints |
+| **User** SSH certificates | Short-lived | Issued at connect time to NetClaw/CI (not baked into images) |
+| **Host** SSH certificates (optional) | Short-lived / renewable | `/etc/ssh/ssh_host_*_cert` + `HostCertificate` in sshd |
+
+Do **not** bake long-lived user certs into golden images. Seed **trust** (CA pubkey) at provision time; issue **user** certs just-in-time.
+
+### Best method for this stack (recommended)
+
+**NetBox-driven Ansible from GitLab CE (JWT → Vault only for signing/secrets) that applies a `vault_ssh_ca_trust` role on first provisioning.**
+
+Why this is the best fit:
+
+1. You already automate with **Ansible + GitLab runners + NetBox**.
+2. The CA **public** key is not secret — safe in git or fetched from Vault with a read-only policy.
+3. New systems appear in **NetBox** first (or via discovery); a pipeline/hook runs without a human SSH session.
+4. Scales to bastions and any NOS that Ansible can configure; unsupported devices stay behind a seeded bastion.
+
+```
+New system imaged / ZTP / VM created
+        │
+        ▼
+NetBox: device created (site, role, mgmt IP, status=staged)
+        │
+        ▼
+GitLab CI (protected) — JWT → Vault (if needed)
+        │
+        ▼
+Ansible: vault_ssh_ca_trust
+  - install TrustedUserCAKeys from known CA pubkey
+  - reload sshd
+  - (optional) enroll host cert via AppRole
+        │
+        ▼
+NetBox: status=active, vault_ssh_role set
+        │
+        ▼
+NetClaw / Ansible: vault write ssh/sign/... → SSH with user cert
+```
+
+Example materials: [`../examples/ssh-ca-zero-touch/`](../examples/ssh-ca-zero-touch/).
+
+### Step-by-step (unattended)
+
+#### 1. Publish the CA public key as a non-secret trust anchor
+
+Pick **one** canonical source (prefer A):
+
+| Option | How |
+|--------|-----|
+| **A. Git (recommended)** | Commit `files/vault-ssh-ca.pub` in the automation repo (or an internal `trust-anchors` repo). Rotate via MR when the SSH CA is rotated. |
+| **B. Vault read in CI** | Policy allowing `read` on `ssh/public_key` / CA public only; job writes the file before Ansible runs. |
+| **C. Internal HTTPS artifact** | CI publishes `https://artifacts.example.local/ssh/vault-ssh-ca.pub` after CA create/rotate. |
+
+```bash
+# One-time (or on CA rotate): capture pubkey into git
+vault read -field=public_key ssh/config/ca > ansible/files/vault-ssh-ca.pub
+git add ansible/files/vault-ssh-ca.pub   # not a secret
+```
+
+#### 2. Ansible role: install trust + harden sshd
+
+Idempotent tasks (concept):
+
+```yaml
+- name: Install Vault SSH CA trust anchor
+  ansible.builtin.copy:
+    src: vault-ssh-ca.pub
+    dest: /etc/ssh/vault-ssh-ca.pub
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload sshd
+
+- name: Trust Vault SSH CA for user certificates
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config.d/99-vault-ca.conf
+    create: true
+    line: "TrustedUserCAKeys /etc/ssh/vault-ssh-ca.pub"
+  notify: Reload sshd
+```
+
+Run against hosts with `netbox_device.status=staged` (or a NetBox tag `ssh-ca-pending`) using the normal inventory plugin — **bootstrap credentials** only for this first play (see § Bootstrap credential below).
+
+#### 3. Trigger without a human
+
+| Trigger | Pattern |
+|---------|---------|
+| **Best default** | NetBox webhook → GitLab pipeline API / scheduled “provision staged devices” job |
+| Alternative | GitLab `schedule` every N minutes: query NetBox for `staged` + missing CA trust fact |
+| Alternative | Image **cloud-init** / first-boot embeds the same `vault-ssh-ca.pub` (still keep Ansible as source of truth for drift) |
+| Network ZTP | Day-0 pushes minimal reachability; Day-1 Ansible (from above) seeds CA trust on the **bastion** path |
+
+#### 4. Optional: unattended **host** certificate enrollment
+
+After trust is in place (or on first boot with AppRole):
+
+1. Host generates host key (normal sshd install).
+2. Host authenticates to Vault with **AppRole** (role_id in image; **secret_id** delivered via cloud-init from a wrapping token, or Vault Agent auto-auth).
+3. `vault write ssh/sign/host-role public_key=@/etc/ssh/ssh_host_ed25519_key.pub cert_type=host valid_principals=<fqdn>,<ip>`
+4. Install cert; set `HostCertificate` in sshd; renew via systemd timer before expiry.
+
+Use a dedicated Vault role `ssh/roles/host-signer` with `allow_host_certificates=true` and tight `allowed_domains` / principals. Prefer **Vault Agent** on Linux VMs for renewal without embedding long-lived tokens.
+
+User certs for NetClaw remain **just-in-time** (never from first-boot seeding).
+
+### Bootstrap credential for the first Ansible connect
+
+Zero-touch CA seeding still needs **one** initial auth path onto a brand-new box:
+
+| Platform | Unattended bootstrap (pick one) |
+|----------|----------------------------------|
+| Cloud VM / bare metal Linux | cloud-init SSH key from **provisioner** (Terraform/packer injects a **short-lived** builder key or uses instance metadata); then Ansible seeds CA and **removes** builder key |
+| Packer golden image | Bake `TrustedUserCAKeys` into the image; new VMs trust Vault CA from first boot — **best for Linux fleets** |
+| Network device | ZTP/POAP + TACACS/local enable; Ansible uses Vault KV once; prefer **bastion** with CA trust rather than per-device CA if NOS lacks SSH certs |
+| ClearPass | Continues X.509 onboard for NAC; **does not** seed SSH CA |
+
+**Best overall for Linux:** bake the Vault SSH CA **public** key into the **golden image** (Packer), and use NetBox+Ansible only for drift/repair and optional host-cert enrollment.  
+**Best overall for mixed network gear:** seed CA on **jump bastions** via NetBox+Ansible; devices stay behind bastions.
+
+### Anti-patterns
+
+| Avoid | Why |
+|-------|-----|
+| Emailing/scping CA pubkey per new host | Human bottleneck; drift |
+| Embedding Vault **root** or long-lived tokens on devices | Compromise blast radius |
+| Baking **user** certs into images | Expire or become standing credentials |
+| Using ClearPass SCEP/EST to push SSH CA trust | Wrong certificate type |
+| One shared bootstrap password left forever | Re-introduces static secrets |
+
+### Acceptance (zero-touch)
+
+- [ ] New lab VM reaches `TrustedUserCAKeys` with **zero** interactive SSH by an engineer
+- [ ] CA pubkey sourced from git or automation (not cut-paste)
+- [ ] NetClaw/CI can sign user certs and log in after seed
+- [ ] Bootstrap builder keys removed or rotated after first converge
+- [ ] Host cert renewal (if used) is timer/Agent-based, not manual
 
 ---
 
@@ -226,6 +375,7 @@ Use OTP to learn the SSH engine; move to **CA mode** for production automation.
 - [ ] ClearPass Onboard remains source of truth for NAC X.509; no attempt to use it as SSH CA
 - [ ] Decision recorded for appliance HTTPS: ClearPass vs enterprise PKI vs Vault PKI
 - [ ] SSH CA private key backup/escrow procedure documented
+- [ ] Zero-touch seeding path documented and tested (image bake and/or NetBox→CI→Ansible)
 
 ---
 

@@ -1,0 +1,33 @@
+# GitLab CE: seed Vault SSH CA trust on NetBox-staged Linux hosts (no secrets:vault).
+# Bootstrap: inventory must still reach hosts (cloud-init builder key / out-of-band).
+# Docs: docs/SSH_CA.md · docs/GITLAB.md
+
+stages:
+  - seed_ssh_ca
+
+variables:
+  VAULT_ADDR: "https://vault.example.local:8200"
+  # Optional: refresh pubkey from Vault each run instead of git-tracked file
+  # REFRESH_CA_PUBKEY: "true"
+
+seed_vault_ssh_ca_trust:
+  stage: seed_ssh_ca
+  image: "your.registry.example/network-ansible:latest"
+  id_tokens:
+    VAULT_ID_TOKEN:
+      aud: https://vault.example.local
+  script:
+    - set -euo pipefail
+    - |
+      if [[ "${REFRESH_CA_PUBKEY:-false}" == "true" ]]; then
+        export VAULT_TOKEN="$(vault write -field=token auth/jwt/login \
+          role="${VAULT_AUTH_ROLE:-gitlab-network-lab}" jwt="${VAULT_ID_TOKEN}")"
+        vault read -field=public_key ssh/config/ca > ansible/files/vault-ssh-ca.pub
+      fi
+    - ansible-galaxy collection install -r requirements.yml
+    # Inventory: NetBox plugin filtered to status=staged, platform=linux, tag=ssh-ca-pending
+    - ansible-playbook -i inventory/netbox.yml playbooks/seed_vault_ssh_ca.yml
+  rules:
+    - if: '$CI_COMMIT_REF_PROTECTED == "true"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "pipeline"'  # NetBox webhook → trigger API

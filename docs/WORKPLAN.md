@@ -227,12 +227,14 @@ ssh/roles/netclaw-change
 - [ ] Keep **ClearPass Onboard** for X.509 / NAC / device TLS (SCEP/EST); do not use it as SSH CA
 - [ ] Decide server TLS source: ClearPass/enterprise PKI vs optional Vault PKI
 - [ ] Deploy Vault SSH CA public key on lab bastions (`TrustedUserCAKeys`); bastion pattern for NOS without SSH certs
-- [ ] NetClaw / runners request short-lived signed certs per session
+- [ ] Implement **zero-touch** CA trust seeding (golden image and/or NetBox→GitLab→Ansible) — [SSH_CA.md](SSH_CA.md)
+- [ ] NetClaw / runners request short-lived signed certs per session (not baked into images)
 - [ ] Retire shared static passwords where possible
 
 **Acceptance**
 
 - Lab bastion (or capable device) login works with Vault-signed SSH cert; TTL ≤ 30 minutes
+- New lab host trusts SSH CA with **no** interactive engineer SSH
 - Written split: ClearPass = X.509; Vault = SSH CA
 - Static password path marked deprecated
 

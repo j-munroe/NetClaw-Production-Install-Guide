@@ -1,0 +1,30 @@
+---
+# Drop into roles/vault_ssh_ca_trust/tasks/main.yml
+# Requires files/vault-ssh-ca.pub (CA public key from Vault — not secret).
+
+- name: Install Vault SSH CA public key
+  ansible.builtin.copy:
+    src: vault-ssh-ca.pub
+    dest: /etc/ssh/vault-ssh-ca.pub
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload sshd
+
+- name: Configure TrustedUserCAKeys
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/99-vault-ca.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      TrustedUserCAKeys /etc/ssh/vault-ssh-ca.pub
+      # Optional hardening once CA logins work:
+      # PasswordAuthentication no
+  notify: Reload sshd
+
+# handlers/main.yml:
+# - name: Reload sshd
+#   ansible.builtin.service:
+#     name: sshd
+#     state: reloaded
