@@ -1,6 +1,8 @@
-# NetClaw production stack documentation
+# NetClaw Production Install Guide
 
 Complete **production** documentation for **NetClaw** and associated components — with **HashiCorp Vault** as the secrets system of record for **GitLab CE**, **Ansible**, **NetBox**, **Dev Containers**, **DefenseClaw**, MCP servers, and your network platforms (CVaaS, Strata, Central, Nexus Dashboard SAN, Cloudflare, IOS-XR, and more).
+
+**Repository:** [j-munroe/NetClaw-Production-Install-Guide](https://github.com/j-munroe/NetClaw-Production-Install-Guide)
 
 ## Start here
 

@@ -1,4 +1,4 @@
-# Documentation home
+# NetClaw Production Install Guide — documentation home
 
 Production documentation for **NetClaw** and associated components — with **HashiCorp Vault** as the secrets system of record for **GitLab CE**, **Ansible**, **NetBox**, **Dev Containers**, **DefenseClaw**, MCP servers, and your network platforms.
 
